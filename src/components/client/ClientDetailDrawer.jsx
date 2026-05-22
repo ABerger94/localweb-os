@@ -8,6 +8,8 @@ import { CheckCircle2, Circle, Globe, Target, Users, Palette, FileText, Mail, Ph
 import ClientEditModal from "@/components/client/ClientEditModal.jsx";
 import WelcomeCallScheduler from "@/components/client/WelcomeCallScheduler.jsx";
 import SendEmailModal from "@/components/client/SendEmailModal.jsx";
+import InlineEmailComposer from "@/components/client/InlineEmailComposer.jsx";
+import InlineCallScheduler from "@/components/client/InlineCallScheduler.jsx";
 
 function Section({ title, icon: SectionIcon, children }) {
   return (
@@ -35,6 +37,8 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
   const [callModalOpen, setCallModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [showInlineEmail, setShowInlineEmail] = useState(false);
+  const [showInlineCall, setShowInlineCall] = useState(false);
 
   const { data: questionnaires = [] } = useQuery({
     queryKey: ["onboarding-questionnaire"],
@@ -65,14 +69,24 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
       key: "welcome_email_sent",
       label: "Welcome email sent",
       action: checklist && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); setEmailModalOpen(true); }}
-          className="sm:hidden inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
-        >
-          <Mail className="w-3 h-3 mr-1" />
-          {checklist.welcome_email_sent ? "Sent" : "Draft Email"}
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setShowInlineEmail(!showInlineEmail); }}
+            className="hidden sm:inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <Mail className="w-3 h-3 mr-1" />
+            {checklist.welcome_email_sent ? "Sent" : "Draft Email"}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setEmailModalOpen(true); }}
+            className="sm:hidden inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <Mail className="w-3 h-3 mr-1" />
+            {checklist.welcome_email_sent ? "Sent" : "Draft Email"}
+          </button>
+        </>
       ),
     },
     { key: "portal_access_granted", label: "Portal access granted" },
@@ -80,14 +94,24 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
       key: "welcome_call_scheduled",
       label: "Welcome call scheduled",
       action: checklist && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); setCallModalOpen(true); }}
-          className="sm:hidden inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
-        >
-          <Phone className="w-3 h-3 mr-1" />
-          {checklist.welcome_call_scheduled ? "Scheduled" : "Schedule Call"}
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setShowInlineCall(!showInlineCall); }}
+            className="hidden sm:inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <Phone className="w-3 h-3 mr-1" />
+            {checklist.welcome_call_scheduled ? "Scheduled" : "Schedule Call"}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setCallModalOpen(true); }}
+            className="sm:hidden inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <Phone className="w-3 h-3 mr-1" />
+            {checklist.welcome_call_scheduled ? "Scheduled" : "Schedule Call"}
+          </button>
+        </>
       ),
     },
     { key: "brand_assets_collected", label: "Brand assets collected" },
@@ -143,7 +167,7 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
 
             {/* Onboarding Progress */}
             <Section title={`Onboarding Progress (${progressPct}%)`} icon={CheckCircle2}>
-              <div className="grid grid-cols-1 gap-1.5">
+              <div className="space-y-1.5">
                 {allChecklistKeys.map((item) => (
                   <div key={item.key} className="flex items-center gap-2">
                     {checklist?.[item.key] ? (
@@ -157,6 +181,22 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
                     {item.action || null}
                   </div>
                 ))}
+                {showInlineEmail && (
+                  <InlineEmailComposer 
+                    client={client}
+                    checklistId={checklist?.id}
+                    onSent={() => { setShowInlineEmail(false); }}
+                    onCancel={() => setShowInlineEmail(false)}
+                  />
+                )}
+                {showInlineCall && (
+                  <InlineCallScheduler 
+                    client={client}
+                    checklistId={checklist?.id}
+                    onScheduled={() => { setShowInlineCall(false); }}
+                    onCancel={() => setShowInlineCall(false)}
+                  />
+                )}
               </div>
             </Section>
 
