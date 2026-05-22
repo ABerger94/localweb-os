@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import { CLIENT_PORTAL_NAVIGATION } from "@/lib/clientPortalNavigation";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -13,14 +14,7 @@ import { DollarSign, X, Loader2 } from "lucide-react";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 import StripePaymentForm from "@/components/invoices/StripePaymentForm";
 
-const navigationItems = [
-  { label: "Dashboard", href: "/client-portal", icon: null },
-  { label: "Projects", href: "/client-portal/projects", icon: null },
-  { label: "Invoices", href: "/client-portal/invoices", icon: null },
-  { label: "Retainers", href: "/client-portal/retainers", icon: null },
-  { label: "Support Tickets", href: "/client-portal/support", icon: null },
-  { label: "Account", href: "/client-portal/account", icon: null },
-];
+
 
 export default function ClientPortalInvoices() {
   const [currentClient, setCurrentClient] = useState(null);
@@ -112,7 +106,7 @@ export default function ClientPortalInvoices() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar items={navigationItems} isClientPortal />
+      <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
 
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">

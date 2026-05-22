@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import { CLIENT_PORTAL_NAVIGATION } from "@/lib/clientPortalNavigation";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,12 +18,7 @@ import ClientProfileSetup from "@/components/client/ClientProfileSetup";
 import OnboardingQuestionnaire from "@/components/client/OnboardingQuestionnaire";
 import StripePaymentForm from "@/components/invoices/StripePaymentForm";
 
-const navigationItems = [
-  { label: "Dashboard", href: "/client-portal" },
-  { label: "Projects", href: "/client-portal/projects" },
-  { label: "Invoices", href: "/client-portal/invoices" },
-  { label: "Onboarding", href: "/client-portal/onboarding" },
-];
+
 
 // Client-facing checklist items
 const CLIENT_STAGES = [
@@ -368,7 +364,7 @@ export default function ClientOnboarding() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen bg-background">
-        <Sidebar items={navigationItems} isClientPortal />
+        <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
         <div className="flex-1 lg:ml-64 flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
         </div>
@@ -379,7 +375,7 @@ export default function ClientOnboarding() {
   if (!currentClient) {
     return (
       <div className="flex min-h-screen bg-background">
-        <Sidebar items={navigationItems} isClientPortal />
+        <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
         <ClientProfileSetup
           currentUser={currentUser}
           onCreated={(client) => setCurrentClient(client)}
@@ -394,7 +390,7 @@ export default function ClientOnboarding() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar items={navigationItems} isClientPortal />
+      <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">
           <PageHeader

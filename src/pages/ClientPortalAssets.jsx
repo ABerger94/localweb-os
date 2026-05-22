@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { CLIENT_PORTAL_NAVIGATION } from "@/lib/clientPortalNavigation";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,15 +13,6 @@ import { Upload, X, Image as ImageIcon, Palette, Type, Link as LinkIcon, Trash2 
 import { Badge } from "@/components/ui/badge";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 import { toast } from "sonner";
-
-const navigationItems = [
-  { label: "Dashboard", href: "/client-portal", icon: null },
-  { label: "Projects", href: "/client-portal/projects", icon: null },
-  { label: "Invoices", href: "/client-portal/invoices", icon: null },
-  { label: "Retainers", href: "/client-portal/retainers", icon: null },
-  { label: "Brand Assets", href: "/client-portal/assets", icon: null },
-  { label: "Support Tickets", href: "/client-portal/support", icon: null },
-];
 
 const ASSET_TYPES = [
   { value: "logo", label: "Logo", icon: ImageIcon },
@@ -101,7 +93,7 @@ export default function ClientPortalAssets() {
   if (!currentClient) {
     return (
       <div className="flex min-h-screen bg-background">
-        <Sidebar items={navigationItems} isClientPortal />
+        <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
         <div className="flex-1 lg:ml-64 flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
         </div>
@@ -116,7 +108,7 @@ export default function ClientPortalAssets() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar items={navigationItems} isClientPortal />
+      <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-between gap-4 mb-6">

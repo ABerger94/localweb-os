@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
+import { CLIENT_PORTAL_NAVIGATION } from "@/lib/clientPortalNavigation";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -10,14 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Bell } from "lucide-react";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 
-const navigationItems = [
-  { label: "Dashboard", href: "/client-portal", icon: null },
-  { label: "Projects", href: "/client-portal/projects", icon: null },
-  { label: "Invoices", href: "/client-portal/invoices", icon: null },
-  { label: "Retainers", href: "/client-portal/retainers", icon: null },
-  { label: "Support Tickets", href: "/client-portal/support", icon: null },
-  { label: "Account", href: "/client-portal/account", icon: null },
-];
+
 
 export default function ClientPortalProjects() {
   const [currentClient, setCurrentClient] = useState(null);
@@ -47,7 +41,7 @@ export default function ClientPortalProjects() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar items={navigationItems} isClientPortal />
+      <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
 
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">

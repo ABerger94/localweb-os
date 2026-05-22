@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { CLIENT_PORTAL_NAVIGATION } from "@/lib/clientPortalNavigation";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -13,14 +14,7 @@ import { Plus, X, MessageSquare, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 
-const navigationItems = [
-  { label: "Dashboard", href: "/client-portal" },
-  { label: "Projects", href: "/client-portal/projects" },
-  { label: "Invoices", href: "/client-portal/invoices" },
-  { label: "Retainers", href: "/client-portal/retainers" },
-  { label: "Support Tickets", href: "/client-portal/support" },
-  { label: "Onboarding", href: "/client-portal/onboarding" },
-];
+
 
 const PRIORITIES = ["Low", "Medium", "High"];
 
@@ -90,7 +84,7 @@ export default function ClientPortalSupport() {
   if (isLoading || ticketsLoading) {
     return (
       <div className="flex min-h-screen bg-background">
-        <Sidebar items={navigationItems} isClientPortal />
+        <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
         <div className="flex-1 lg:ml-64 flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
         </div>
@@ -100,7 +94,7 @@ export default function ClientPortalSupport() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar items={navigationItems} isClientPortal />
+      <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-between gap-4 mb-6">

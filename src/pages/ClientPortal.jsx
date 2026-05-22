@@ -17,14 +17,7 @@ import {
 import ClientProfileSetup from "@/components/client/ClientProfileSetup";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 
-const navigationItems = [
-  { label: "Dashboard", href: "/client-portal", icon: null },
-  { label: "Projects", href: "/client-portal/projects", icon: null },
-  { label: "Invoices", href: "/client-portal/invoices", icon: null },
-  { label: "Retainers", href: "/client-portal/retainers", icon: null },
-  { label: "Support Tickets", href: "/client-portal/support", icon: null },
-  { label: "Brand Assets", href: "/client-portal/assets", icon: null },
-];
+import { CLIENT_PORTAL_NAVIGATION } from "@/lib/clientPortalNavigation";
 
 export default function ClientPortal() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -83,7 +76,7 @@ export default function ClientPortal() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen bg-background">
-        <Sidebar items={navigationItems} isClientPortal />
+        <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
         <div className="flex-1 lg:ml-64 flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
         </div>
@@ -94,7 +87,7 @@ export default function ClientPortal() {
   if (!currentClient) {
     return (
       <div className="flex min-h-screen bg-background">
-        <Sidebar items={navigationItems} isClientPortal />
+        <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
         <ClientProfileSetup
           currentUser={currentUser}
           onCreated={(client) => setCurrentClient(client)}
@@ -111,7 +104,7 @@ export default function ClientPortal() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar items={navigationItems} isClientPortal />
+      <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
 
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">
