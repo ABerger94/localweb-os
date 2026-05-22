@@ -8,7 +8,7 @@ import StatCard from "@/components/shared/StatCard";
 import InvoiceModal from "@/components/invoices/InvoiceModal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Check, Pencil, FileText, ExternalLink } from "lucide-react";
+import { Plus, Check, Pencil, FileText, ExternalLink, Trash2 } from "lucide-react";
 
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: null },
@@ -23,6 +23,11 @@ export default function Invoices() {
   const qc = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Invoice.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
+  });
 
   const { data: invoices = [] } = useQuery({
     queryKey: ["invoices"],
@@ -56,6 +61,7 @@ export default function Invoices() {
 
   const openCreate = () => { setEditingInvoice(null); setModalOpen(true); };
   const openEdit = (inv) => { setEditingInvoice(inv); setModalOpen(true); };
+  const handleDelete = (id) => { if (confirm("Delete this invoice?")) deleteMutation.mutate(id); };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -109,6 +115,14 @@ export default function Invoices() {
                   <div className="flex items-center gap-2 shrink-0">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(invoice)}>
                       <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleDelete(invoice.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                     {invoice.status === "Pending" && (
                       <Button

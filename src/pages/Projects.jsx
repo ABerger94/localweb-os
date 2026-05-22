@@ -60,6 +60,22 @@ export default function Projects() {
   const openEdit = (p) => { setEditProject(p); setModalOpen(true); };
   const handleDelete = (id) => { if (confirm("Delete this project?")) deleteMutation.mutate(id); };
 
+  // Auto-create retainer workflow
+  const createRetainerWorkflow = async (projectId) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    const retainerAmount = prompt("Enter monthly retainer amount:", "299");
+    if (!retainerAmount) return;
+    const description = prompt("Retainer description:", "Website Maintenance & Hosting");
+    await base44.functions.invoke("createProjectRetainerWorkflow", {
+      projectId,
+      clientId: project.client_id,
+      retainerAmount: parseFloat(retainerAmount),
+      description,
+    });
+    qc.invalidateQueries({ queryKey: ["projects", "retainers", "clients"] });
+  };
+
   const statusCounts = STATUS_OPTIONS.slice(1).reduce((acc, s) => {
     acc[s] = projects.filter((p) => p.status === s).length;
     return acc;
@@ -157,6 +173,14 @@ export default function Projects() {
                       )}
                     </div>
                     <div className="flex gap-1 shrink-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => createRetainerWorkflow(project.id)}
+                        className="text-xs"
+                      >
+                        Convert to Retainer
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(project)}>
                         <Pencil className="w-4 h-4" />
                       </Button>

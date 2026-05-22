@@ -7,7 +7,7 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import StatCard from "@/components/shared/StatCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign } from "lucide-react";
+import { DollarSign, ExternalLink } from "lucide-react";
 
 const navigationItems = [
   { label: "Dashboard", href: "/client-portal", icon: null },
@@ -85,7 +85,20 @@ export default function ClientPortalInvoices() {
                     </div>
                   </div>
                   {invoice.status === "Pending" && (
-                    <Button>Pay Now</Button>
+                    <Button onClick={async () => {
+                      const res = await base44.functions.invoke("createStripePaymentLink", {
+                        invoiceId: invoice.id,
+                        amount: invoice.amount,
+                        clientEmail: currentClient.contact_email,
+                        clientName: currentClient.business_name,
+                      });
+                      if (res.data?.paymentLink) {
+                        window.location.href = res.data.paymentLink;
+                      }
+                    }}>
+                      Pay Now
+                      <ExternalLink className="w-4 h-4 ml-1" />
+                    </Button>
                   )}
                 </div>
               </Card>

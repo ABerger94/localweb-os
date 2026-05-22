@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
@@ -8,7 +8,7 @@ import StatCard from "@/components/shared/StatCard";
 import RetainerModal from "@/components/retainers/RetainerModal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, FileText } from "lucide-react";
+import { Plus, Pencil, FileText, Trash2 } from "lucide-react";
 
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: null },
@@ -20,8 +20,14 @@ const navigationItems = [
 ];
 
 export default function Retainers() {
+  const qc = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRetainer, setEditingRetainer] = useState(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Retainer.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["retainers"] }),
+  });
 
   const { data: retainers = [] } = useQuery({
     queryKey: ["retainers"],
@@ -42,6 +48,7 @@ export default function Retainers() {
 
   const openCreate = () => { setEditingRetainer(null); setModalOpen(true); };
   const openEdit = (r) => { setEditingRetainer(r); setModalOpen(true); };
+  const handleDelete = (id) => { if (confirm("Delete this retainer?")) deleteMutation.mutate(id); };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -95,9 +102,19 @@ export default function Retainers() {
                       )}
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(retainer)}>
-                    <Pencil className="w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-1 shrink-0">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(retainer)}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleDelete(retainer.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
