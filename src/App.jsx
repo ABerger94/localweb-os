@@ -16,6 +16,8 @@ import Designer from '@/pages/Designer';
 import ClientPortal from '@/pages/ClientPortal';
 import ClientPortalProjects from '@/pages/ClientPortalProjects';
 import ClientPortalInvoices from '@/pages/ClientPortalInvoices';
+import Onboarding from '@/pages/Onboarding';
+import ClientOnboarding from '@/pages/ClientOnboarding';
 
 
 
@@ -49,6 +51,7 @@ const AuthenticatedApp = () => {
         <Route path="/client-portal" element={<ClientPortal />} />
         <Route path="/client-portal/projects" element={<ClientPortalProjects />} />
         <Route path="/client-portal/invoices" element={<ClientPortalInvoices />} />
+        <Route path="/client-portal/onboarding" element={<ClientOnboarding />} />
         <Route path="*" element={<Navigate to="/client-portal" replace />} />
       </Routes>
     );
@@ -64,6 +67,7 @@ const AuthenticatedApp = () => {
       <Route path="/invoices" element={<Invoices />} />
       <Route path="/retainers" element={<Retainers />} />
       <Route path="/designer" element={<Designer />} />
+      <Route path="/onboarding" element={<Onboarding />} />
       
       {/* Client Portal Routes */}
       <Route path="/client-portal" element={<ClientPortal />} />

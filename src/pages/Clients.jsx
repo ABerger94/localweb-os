@@ -12,6 +12,7 @@ import { Plus, Trash2 } from "lucide-react";
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: null },
   { label: "Clients", href: "/clients", icon: null },
+  { label: "Onboarding", href: "/onboarding", icon: null },
   { label: "Projects", href: "/projects", icon: null },
   { label: "Invoices", href: "/invoices", icon: null },
   { label: "Retainers", href: "/retainers", icon: null },

@@ -1,0 +1,77 @@
+{
+  "name": "OnboardingChecklist",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client entity"
+    },
+    "welcome_email_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Welcome email sent to client"
+    },
+    "portal_access_granted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Client portal access has been granted"
+    },
+    "welcome_call_scheduled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Welcome/kickoff call has been scheduled"
+    },
+    "brand_assets_collected": {
+      "type": "boolean",
+      "default": false,
+      "description": "Logos, colors, fonts collected from client"
+    },
+    "business_goals_documented": {
+      "type": "boolean",
+      "default": false,
+      "description": "Business goals and target audience documented"
+    },
+    "questionnaire_completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Client has completed the onboarding questionnaire"
+    },
+    "strategy_meeting_held": {
+      "type": "boolean",
+      "default": false,
+      "description": "Strategy planning meeting completed"
+    },
+    "project_plan_created": {
+      "type": "boolean",
+      "default": false,
+      "description": "Project plan and scope document created"
+    },
+    "communication_channels_set": {
+      "type": "boolean",
+      "default": false,
+      "description": "Communication channels and preferences established"
+    },
+    "first_project_created": {
+      "type": "boolean",
+      "default": false,
+      "description": "First project has been created and assigned"
+    },
+    "initial_invoice_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Initial setup/onboarding invoice sent"
+    },
+    "retainer_agreement_signed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Retainer agreement signed and activated"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes on onboarding progress"
+    }
+  },
+  "required": [
+    "client_id"
+  ]
+}
