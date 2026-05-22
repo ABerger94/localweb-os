@@ -26,18 +26,9 @@ export default function Sidebar({ items, isClientPortal = false }) {
         )}
       </Button>
 
-      {/* Mobile Overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-[95] lg:hidden"
-          onClick={() => setMobileOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-[90] w-64 bg-sidebar border-r border-sidebar-border",
+        "fixed inset-y-0 left-0 z-[100] w-64 bg-sidebar border-r border-sidebar-border",
         "flex flex-col transition-transform duration-300",
         "lg:translate-x-0",
         mobileOpen ? "translate-x-0" : "-translate-x-full"
