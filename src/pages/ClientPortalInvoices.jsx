@@ -7,7 +7,8 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import StatCard from "@/components/shared/StatCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, ExternalLink } from "lucide-react";
+import { DollarSign, ExternalLink, Bell } from "lucide-react";
+import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 
 const navigationItems = [
   { label: "Dashboard", href: "/client-portal", icon: null },
@@ -53,10 +54,16 @@ export default function ClientPortalInvoices() {
 
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">
-          <PageHeader
-            title="Invoices"
-            description="View and pay your invoices"
-          />
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <PageHeader
+              title="Invoices"
+              description="View and pay your invoices"
+              className="flex-1"
+            />
+            <div className="hidden lg:block">
+              <ClientNotificationPanel />
+            </div>
+          </div>
 
           <div className="mb-8">
             <StatCard

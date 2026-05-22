@@ -12,8 +12,10 @@ import {
   FileText,
   CheckCircle2,
   AlertCircle,
+  Bell,
 } from "lucide-react";
 import ClientProfileSetup from "@/components/client/ClientProfileSetup";
+import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 
 const navigationItems = [
   { label: "Dashboard", href: "/client-portal", icon: null },
@@ -113,10 +115,14 @@ export default function ClientPortal() {
 
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">
-          <PageHeader
-            title={`Welcome, ${currentClient.contact_name}`}
-            description={currentClient.business_name}
-          />
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <PageHeader
+              title={`Welcome, ${currentClient.contact_name}`}
+              description={currentClient.business_name}
+              className="flex-1"
+            />
+            <ClientNotificationPanel />
+          </div>
 
           {/* Overview Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

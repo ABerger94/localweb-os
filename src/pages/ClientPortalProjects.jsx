@@ -7,7 +7,8 @@ import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Bell } from "lucide-react";
+import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 
 const navigationItems = [
   { label: "Dashboard", href: "/client-portal", icon: null },
@@ -50,10 +51,14 @@ export default function ClientPortalProjects() {
 
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">
-          <PageHeader
-            title="Your Projects"
-            description="View the status of your website projects"
-          />
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <PageHeader
+              title="Your Projects"
+              description="View the status of your website projects"
+              className="flex-1"
+            />
+            <ClientNotificationPanel />
+          </div>
 
           <div className="grid grid-cols-1 gap-4">
             {clientProjects.map((project) => (

@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, MessageSquare } from "lucide-react";
+import { Plus, X, MessageSquare, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 
 const navigationItems = [
   { label: "Dashboard", href: "/client-portal" },
@@ -102,13 +103,17 @@ export default function ClientPortalSupport() {
       <Sidebar items={navigationItems} isClientPortal />
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">
-          <PageHeader
-            title="Support Tickets"
-            description="Submit and track maintenance requests"
-            action={() => setShowForm(true)}
-            actionLabel="New Ticket"
-            actionIcon={Plus}
-          />
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <PageHeader
+              title="Support Tickets"
+              description="Submit and track maintenance requests"
+              action={() => setShowForm(true)}
+              actionLabel="New Ticket"
+              actionIcon={Plus}
+              className="flex-1"
+            />
+            <ClientNotificationPanel />
+          </div>
 
           {/* New Ticket Form */}
           {showForm && (

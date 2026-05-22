@@ -6,7 +6,8 @@ import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import StatCard from "@/components/shared/StatCard";
 import { Card } from "@/components/ui/card";
-import { DollarSign, RefreshCw } from "lucide-react";
+import { DollarSign, RefreshCw, Bell } from "lucide-react";
+import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 
 const navigationItems = [
   { label: "Dashboard", href: "/client-portal" },
@@ -60,10 +61,14 @@ export default function ClientPortalRetainers() {
       <Sidebar items={navigationItems} isClientPortal />
       <div className="flex-1 lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">
-          <PageHeader
-            title="Retainers"
-            description="Your active service agreements"
-          />
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <PageHeader
+              title="Retainers"
+              description="Your active service agreements"
+              className="flex-1"
+            />
+            <ClientNotificationPanel />
+          </div>
 
           <div className="mb-8">
             <StatCard
