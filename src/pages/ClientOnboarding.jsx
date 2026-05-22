@@ -148,11 +148,14 @@ export default function ClientOnboarding() {
   const [meetingDateTime, setMeetingDateTime] = useState("");
   const [meetingNotes, setMeetingNotes] = useState("");
 
+  const [submittingMeeting, setSubmittingMeeting] = useState(false);
+
   const handleStrategyMeetingSubmit = async (e) => {
     e.preventDefault();
     if (!meetingDateTime) return;
-    // Use backend function to propose meeting time with email notification
+    setSubmittingMeeting(true);
     try {
+      // Use backend function to propose meeting time with email notification
       if (checklist) {
         await base44.functions.invoke('proposeMeetingTime', {
           checklistId: checklist.id,
@@ -185,8 +188,12 @@ export default function ClientOnboarding() {
       queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] });
       setMeetingDateTime("");
       setMeetingNotes("");
+      alert("Meeting time proposed! The agency will review and confirm shortly.");
     } catch (error) {
       console.error('Error proposing meeting:', error);
+      alert("Failed to propose meeting time. Please try again.");
+    } finally {
+      setSubmittingMeeting(false);
     }
   };
 
@@ -600,9 +607,9 @@ export default function ClientOnboarding() {
                                       className="text-sm h-20"
                                     />
                                   </div>
-                                  <Button size="sm" type="submit" className="gap-2">
+                                  <Button size="sm" type="submit" className="gap-2" disabled={submittingMeeting}>
                                     <CalendarClock className="w-4 h-4" />
-                                    Propose Meeting Time
+                                    {submittingMeeting ? "Proposing..." : "Propose Meeting Time"}
                                   </Button>
                                 </form>
                               )
