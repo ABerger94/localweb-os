@@ -43,7 +43,24 @@
     },
     "strategy_meeting_date": {
       "type": "string",
-      "description": "Client-requested date/time for strategy meeting (ISO string)"
+      "description": "Proposed date/time for strategy meeting (ISO string)"
+    },
+    "strategy_meeting_proposed_by": {
+      "type": "string",
+      "enum": [
+        "client",
+        "agency"
+      ],
+      "description": "Who proposed the current meeting time"
+    },
+    "strategy_meeting_confirmed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Meeting time has been confirmed by both parties"
+    },
+    "meeting_proposal_history": {
+      "type": "string",
+      "description": "JSON array of meeting proposal history [{proposed_by, datetime, notes, confirmed}]"
     },
     "project_plan_created": {
       "type": "boolean",

@@ -1,0 +1,67 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { checklistId, confirmedBy } = await req.json();
+
+    if (!checklistId || !confirmedBy) {
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Get checklist and client
+    const checklist = await base44.entities.OnboardingChecklist.get(checklistId);
+    const client = await base44.entities.Client.get(checklist.client_id);
+
+    // Update meeting proposal history to mark latest as confirmed
+    let history = [];
+    if (checklist.meeting_proposal_history) {
+      try {
+        history = JSON.parse(checklist.meeting_proposal_history);
+        // Mark the latest proposal as confirmed
+        if (history.length > 0) {
+          history[history.length - 1].confirmed = true;
+        }
+      } catch {
+        history = [];
+      }
+    }
+
+    // Update checklist
+    await base44.entities.OnboardingChecklist.update(checklistId, {
+      strategy_meeting_confirmed: true,
+      strategy_meeting_held: true,
+      meeting_proposal_history: JSON.stringify(history),
+    });
+
+    // Send confirmation emails
+    if (confirmedBy === 'agency') {
+      // Agency confirmed - notify client
+      await base44.integrations.Core.SendEmail({
+        to: client.contact_email,
+        subject: 'Strategy Meeting Confirmed! ✅',
+        body: `Hi ${client.contact_name || 'there'},\n\nGreat news! Your strategy meeting has been confirmed for:\n\n📅 ${new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\nWe're looking forward to speaking with you!\n\nBest regards,\nLocal Web Connect`,
+      });
+    } else {
+      // Client confirmed - notify agency
+      const admins = await base44.entities.User.filter({ role: 'admin' });
+      for (const admin of admins) {
+        await base44.integrations.Core.SendEmail({
+          to: admin.email,
+          subject: `Meeting Confirmed - ${client.business_name}`,
+          body: `Hi ${admin.full_name || 'there'},\n\n${client.contact_name} has confirmed the strategy meeting for:\n\n📅 ${new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\nThe onboarding checklist has been updated.\n\nBest regards,\nLocal Web Connect`,
+        });
+      }
+    }
+
+    return Response.json({ success: true });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});

@@ -148,15 +148,43 @@ export default function ClientOnboarding() {
   const handleStrategyMeetingSubmit = async (e) => {
     e.preventDefault();
     if (!meetingDateTime) return;
-    // Save the requested meeting time to checklist — do NOT check off strategy_meeting_held (admin does that)
-    if (checklist) {
-      await base44.entities.OnboardingChecklist.update(checklist.id, { strategy_meeting_date: meetingDateTime });
-    } else if (currentClient) {
-      await base44.entities.OnboardingChecklist.create({ client_id: currentClient.id, strategy_meeting_date: meetingDateTime });
+    // Use backend function to propose meeting time with email notification
+    try {
+      if (checklist) {
+        await base44.functions.invoke('proposeMeetingTime', {
+          checklistId: checklist.id,
+          datetime: meetingDateTime,
+          notes: meetingNotes,
+          proposedBy: 'client',
+        });
+      } else if (currentClient) {
+        // Create checklist first if it doesn't exist
+        const newChecklist = await base44.entities.OnboardingChecklist.create({
+          client_id: currentClient.id,
+          strategy_meeting_date: meetingDateTime,
+          strategy_meeting_proposed_by: 'client',
+          strategy_meeting_confirmed: false,
+          meeting_proposal_history: JSON.stringify([{
+            proposed_by: 'client',
+            datetime: meetingDateTime,
+            notes: meetingNotes,
+            confirmed: false,
+            timestamp: new Date().toISOString(),
+          }]),
+        });
+        await base44.functions.invoke('proposeMeetingTime', {
+          checklistId: newChecklist.id,
+          datetime: meetingDateTime,
+          notes: meetingNotes,
+          proposedBy: 'client',
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] });
+      setMeetingDateTime("");
+      setMeetingNotes("");
+    } catch (error) {
+      console.error('Error proposing meeting:', error);
     }
-    queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] });
-    setMeetingDateTime("");
-    setMeetingNotes("");
   };
 
   const handleBrandAssetsSubmit = async (e) => {
@@ -449,18 +477,78 @@ export default function ClientOnboarding() {
                                 )}
                               </div>
                             ) : item.form === "strategyMeeting" ? (
-                              checklist?.strategy_meeting_date ? (
-                                <div className="mt-3 ml-8 p-3 rounded-lg bg-blue-50 border border-blue-200">
-                                  <p className="text-xs font-medium text-blue-800">Meeting Requested</p>
-                                  <p className="text-sm text-blue-700 mt-0.5">
-                                    {new Date(checklist.strategy_meeting_date).toLocaleString()}
+                              checklist?.strategy_meeting_date && !checklist?.strategy_meeting_confirmed ? (
+                                <div className="mt-3 ml-8 p-3 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-xs font-medium text-blue-800">
+                                      {checklist.strategy_meeting_proposed_by === 'client' ? 'Your Request' : 'Agency Proposal'}
+                                    </p>
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">
+                                      {checklist.strategy_meeting_proposed_by === 'client' ? 'Pending agency confirmation' : 'Awaiting your confirmation'}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm font-medium text-blue-900">
+                                    📅 {new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
                                   </p>
-                                  <p className="text-xs text-blue-600 mt-1">Your agency will confirm this time shortly.</p>
+                                  {checklist.strategy_meeting_proposed_by === 'client' ? (
+                                    <p className="text-xs text-blue-700">
+                                      Your agency will review and confirm this time shortly. You'll receive an email confirmation.
+                                    </p>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      <p className="text-xs text-blue-700">
+                                        Your agency has proposed this time. Please confirm or suggest an alternative.
+                                      </p>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          size="sm"
+                                          className="h-8 text-xs"
+                                          onClick={async () => {
+                                            try {
+                                              await base44.functions.invoke('confirmMeetingTime', {
+                                                checklistId: checklist.id,
+                                                confirmedBy: 'client',
+                                              });
+                                              queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
+                                            } catch (error) {
+                                              console.error('Error confirming:', error);
+                                            }
+                                          }}
+                                        >
+                                          ✓ Confirm This Time
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="h-8 text-xs"
+                                          onClick={() => {
+                                            setMeetingDateTime('');
+                                            setMeetingNotes('');
+                                            // Scroll to form
+                                            const form = document.getElementById('strategy-meeting-form');
+                                            if (form) form.scrollIntoView({ behavior: 'smooth' });
+                                          }}
+                                        >
+                                          ↺ Suggest New Time
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : checklist?.strategy_meeting_confirmed ? (
+                                <div className="mt-3 ml-8 p-3 rounded-lg bg-green-50 border border-green-200">
+                                  <p className="text-xs font-medium text-green-800">✓ Meeting Confirmed</p>
+                                  <p className="text-sm font-semibold text-green-900 mt-0.5">
+                                    📅 {new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                                  </p>
+                                  <p className="text-xs text-green-700 mt-1">
+                                    You'll receive a calendar invitation via email.
+                                  </p>
                                 </div>
                               ) : (
-                                <form onSubmit={handleStrategyMeetingSubmit} className="mt-3 ml-8 space-y-3">
+                                <form id="strategy-meeting-form" onSubmit={handleStrategyMeetingSubmit} className="mt-3 ml-8 space-y-3">
                                   <div className="space-y-2">
-                                    <p className="text-xs text-muted-foreground">Pick your preferred date & time for the strategy session:</p>
+                                    <p className="text-xs font-medium text-foreground">Propose a date & time for your strategy session:</p>
                                     <Input
                                       type="datetime-local"
                                       value={meetingDateTime}
@@ -470,7 +558,7 @@ export default function ClientOnboarding() {
                                       className="text-sm"
                                     />
                                     <Textarea
-                                      placeholder="Any topics you'd like to cover or questions you have..."
+                                      placeholder="Any specific topics you'd like to cover or questions you have?"
                                       value={meetingNotes}
                                       onChange={(e) => setMeetingNotes(e.target.value)}
                                       className="text-sm h-20"
@@ -478,7 +566,7 @@ export default function ClientOnboarding() {
                                   </div>
                                   <Button size="sm" type="submit" className="gap-2">
                                     <CalendarClock className="w-4 h-4" />
-                                    Request Meeting
+                                    Propose Meeting Time
                                   </Button>
                                 </form>
                               )

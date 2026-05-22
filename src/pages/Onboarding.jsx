@@ -155,42 +155,66 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
                       );
                     })}
                     {/* Meeting confirmation UI — show when a time has been requested but not yet confirmed */}
-                    {stage.id === "strategy" && checklist?.strategy_meeting_date && checklist?.strategy_meeting_held !== true && (
-                      <div onClick={(e) => e.stopPropagation()} className="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
-                        <p className="text-xs font-semibold text-blue-800">Client requested:</p>
-                        <p className="text-xs text-blue-700">{strategyMeetingDate}</p>
-                        {!suggestMode ? (
+                    {stage.id === "strategy" && checklist?.strategy_meeting_date && !checklist?.strategy_meeting_confirmed && (
+                      <div onClick={(e) => e.stopPropagation()} className="mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-blue-800">
+                            {checklist.strategy_meeting_proposed_by === 'client' ? 'Client proposed:' : 'Agency proposed:'}
+                          </span>
+                          {!suggestMode && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">
+                              Pending confirmation
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium text-blue-900">{strategyMeetingDate}</p>
+                        {checklist.strategy_meeting_proposed_by === 'client' && !suggestMode && (
                           <div className="flex gap-1.5">
                             <Button
                               size="sm"
-                              className="h-6 text-xs px-2 gap-1"
+                              className="h-7 text-xs px-2 gap-1"
                               onClick={() => onConfirmMeeting(client.id, checklist)}
                             >
                               <CalendarCheck className="w-3 h-3" />
-                              Confirm
+                              Confirm Time
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-6 text-xs px-2 gap-1"
+                              className="h-7 text-xs px-2 gap-1"
                               onClick={() => setSuggestMode(true)}
                             >
                               <CalendarX className="w-3 h-3" />
                               Suggest New Time
                             </Button>
                           </div>
-                        ) : (
-                          <div className="space-y-1.5">
+                        )}
+                        {checklist.strategy_meeting_proposed_by === 'agency' && (
+                          <p className="text-xs text-blue-700 italic">
+                            Waiting for client confirmation...
+                          </p>
+                        )}
+                        {!suggestMode && checklist.strategy_meeting_proposed_by === 'client' && (
+                          <button
+                            onClick={() => setSuggestMode(true)}
+                            className="text-xs text-blue-700 hover:underline"
+                          >
+                            Can't make this time? Suggest alternative
+                          </button>
+                        )}
+                        {suggestMode && (
+                          <div className="space-y-2 mt-2 pt-2 border-t border-blue-200">
                             <Input
                               type="datetime-local"
                               value={suggestedTime}
                               onChange={(e) => setSuggestedTime(e.target.value)}
-                              className="h-7 text-xs"
+                              className="h-8 text-sm"
+                              placeholder="Select alternative time"
                             />
                             <div className="flex gap-1.5">
                               <Button
                                 size="sm"
-                                className="h-6 text-xs px-2"
+                                className="h-7 text-xs px-2"
                                 disabled={!suggestedTime}
                                 onClick={() => {
                                   onSuggestMeeting(client.id, checklist, suggestedTime);
@@ -198,12 +222,12 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
                                   setSuggestedTime("");
                                 }}
                               >
-                                Send
+                                Send Counter-Proposal
                               </Button>
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-6 text-xs px-2"
+                                className="h-7 text-xs px-2"
                                 onClick={() => { setSuggestMode(false); setSuggestedTime(""); }}
                               >
                                 Cancel
@@ -252,12 +276,30 @@ export default function Onboarding() {
     mutation.mutate({ clientId, checklistId: checklist?.id, updates: { [key]: value } });
   };
 
-  const handleConfirmMeeting = (clientId, checklist) => {
-    mutation.mutate({ clientId, checklistId: checklist?.id, updates: { strategy_meeting_held: true } });
+  const handleConfirmMeeting = async (clientId, checklist) => {
+    try {
+      await base44.functions.invoke('confirmMeetingTime', {
+        checklistId: checklist.id,
+        confirmedBy: 'agency',
+      });
+      queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
+    } catch (error) {
+      console.error('Error confirming meeting:', error);
+    }
   };
 
-  const handleSuggestMeeting = (clientId, checklist, newTime) => {
-    mutation.mutate({ clientId, checklistId: checklist?.id, updates: { strategy_meeting_date: newTime } });
+  const handleSuggestMeeting = async (clientId, checklist, newTime) => {
+    try {
+      await base44.functions.invoke('proposeMeetingTime', {
+        checklistId: checklist.id,
+        datetime: newTime,
+        notes: 'Agency suggested new time',
+        proposedBy: 'agency',
+      });
+      queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
+    } catch (error) {
+      console.error('Error suggesting meeting:', error);
+    }
   };
 
   // Show only onboarding-relevant clients (not churned)
