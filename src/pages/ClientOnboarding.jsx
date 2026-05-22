@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, Lock, Upload, X, CalendarClock } from "lucide-react";
+import { CheckCircle2, Circle, Lock, Upload, X, CalendarClock, CreditCard, FileSignature, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import ClientProfileSetup from "@/components/client/ClientProfileSetup";
@@ -54,8 +54,8 @@ const CLIENT_STAGES = [
     label: "Project Kick-off",
     description: "Start your journey with us",
     items: [
-      { key: "initial_invoice_sent", label: "Pay your setup invoice" },
-      { key: "retainer_agreement_signed", label: "Review & sign your retainer agreement" },
+      { key: "initial_invoice_sent", label: "Pay your setup invoice", form: "invoicePayment" },
+      { key: "retainer_agreement_signed", label: "Review & sign your retainer agreement", form: "retainerAgreement" },
     ],
   },
 ];
@@ -82,6 +82,18 @@ export default function ClientOnboarding() {
   const { data: questionnaires = [] } = useQuery({
     queryKey: ["onboarding-questionnaire"],
     queryFn: () => base44.entities.OnboardingQuestionnaire.list(),
+    enabled: !!currentClient,
+  });
+
+  const { data: invoices = [] } = useQuery({
+    queryKey: ["invoices"],
+    queryFn: () => base44.entities.Invoice.list(),
+    enabled: !!currentClient,
+  });
+
+  const { data: retainers = [] } = useQuery({
+    queryKey: ["retainers"],
+    queryFn: () => base44.entities.Retainer.list(),
     enabled: !!currentClient,
   });
 
@@ -188,6 +200,43 @@ export default function ClientOnboarding() {
       await mutation.mutateAsync({ key: "communication_channels_set", value: true });
       setFormData(prev => ({ ...prev, communicationChannel: "" }));
     }
+  };
+
+  const clientInvoices = invoices.filter((inv) => inv.client_id === currentClient?.id);
+  const setupInvoice = clientInvoices.find((inv) => inv.invoice_type === "setup" && inv.status !== "Paid");
+  const clientRetainer = retainers.find((r) => r.client_id === currentClient?.id && r.status === "Active");
+
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [retainerSigning, setRetainerSigning] = useState(false);
+  const [retainerAgreed, setRetainerAgreed] = useState(false);
+
+  const handlePayInvoice = async () => {
+    if (!setupInvoice) return;
+    setPaymentLoading(true);
+    const res = await base44.functions.invoke("createStripePaymentLink", {
+      invoiceId: setupInvoice.id,
+      amount: setupInvoice.amount,
+      clientEmail: currentClient.contact_email,
+      clientName: currentClient.business_name,
+    });
+    setPaymentLoading(false);
+    if (res.data?.paymentLink) {
+      window.open(res.data.paymentLink, "_blank");
+      // Mark as paid after redirect (optimistic for now — in production a webhook would do this)
+      await base44.entities.Invoice.update(setupInvoice.id, { status: "Paid", paid_date: new Date().toISOString().split("T")[0] });
+      await mutation.mutateAsync({ key: "initial_invoice_sent", value: true });
+    }
+  };
+
+  const handleSignRetainer = async () => {
+    if (!retainerAgreed) return;
+    setRetainerSigning(true);
+    if (clientRetainer) {
+      await base44.entities.Retainer.update(clientRetainer.id, { status: "Active" });
+    }
+    await mutation.mutateAsync({ key: "retainer_agreement_signed", value: true });
+    setRetainerSigning(false);
+    setRetainerAgreed(false);
   };
 
   const isLoading = !currentUser || clientsLoading || checklistsLoading;
@@ -320,6 +369,84 @@ export default function ClientOnboarding() {
                                 existingResponse={existingQuestionnaire}
                                 onComplete={() => mutation.mutate({ key: "questionnaire_completed", value: true })}
                               />
+                            ) : item.form === "invoicePayment" ? (
+                              <div className="mt-3 ml-8 space-y-3">
+                                {setupInvoice ? (
+                                  <div className="p-4 rounded-lg border border-border bg-muted/30 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <p className="text-sm font-medium">Setup Invoice</p>
+                                        <p className="text-xs text-muted-foreground">{setupInvoice.description || "Initial setup & onboarding fee"}</p>
+                                        {setupInvoice.due_date && (
+                                          <p className="text-xs text-muted-foreground">Due: {new Date(setupInvoice.due_date).toLocaleDateString()}</p>
+                                        )}
+                                      </div>
+                                      <p className="text-lg font-bold text-foreground">${setupInvoice.amount?.toFixed(2)}</p>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      className="gap-2 w-full"
+                                      onClick={handlePayInvoice}
+                                      disabled={paymentLoading}
+                                    >
+                                      <CreditCard className="w-4 h-4" />
+                                      {paymentLoading ? "Redirecting to payment..." : "Pay Now"}
+                                      <ExternalLink className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="p-4 rounded-lg border border-border bg-muted/30 text-center space-y-2">
+                                    <p className="text-sm text-muted-foreground">No setup invoice has been issued yet.</p>
+                                    <p className="text-xs text-muted-foreground">Your agency will send your invoice shortly. Check back soon.</p>
+                                  </div>
+                                )}
+                              </div>
+                            ) : item.form === "retainerAgreement" ? (
+                              <div className="mt-3 ml-8 space-y-3">
+                                {clientRetainer ? (
+                                  <div className="p-4 rounded-lg border border-border bg-muted/30 space-y-3">
+                                    <div>
+                                      <p className="text-sm font-medium">Retainer Agreement</p>
+                                      <p className="text-xs text-muted-foreground mt-0.5">{clientRetainer.description || "Monthly retainer services"}</p>
+                                      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                                        <div className="bg-muted rounded p-2">
+                                          <span className="text-muted-foreground">Monthly Amount</span>
+                                          <p className="font-semibold text-foreground">${clientRetainer.monthly_amount?.toFixed(2)}/mo</p>
+                                        </div>
+                                        <div className="bg-muted rounded p-2">
+                                          <span className="text-muted-foreground">Billing Cycle</span>
+                                          <p className="font-semibold text-foreground capitalize">{clientRetainer.billing_cycle}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <label className="flex items-start gap-2 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={retainerAgreed}
+                                        onChange={(e) => setRetainerAgreed(e.target.checked)}
+                                        className="mt-0.5 accent-primary"
+                                      />
+                                      <span className="text-xs text-muted-foreground">
+                                        I have read and agree to the retainer agreement terms. I authorize recurring billing as described above.
+                                      </span>
+                                    </label>
+                                    <Button
+                                      size="sm"
+                                      className="gap-2 w-full"
+                                      onClick={handleSignRetainer}
+                                      disabled={!retainerAgreed || retainerSigning}
+                                    >
+                                      <FileSignature className="w-4 h-4" />
+                                      {retainerSigning ? "Signing..." : "Sign & Activate Retainer"}
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="p-4 rounded-lg border border-border bg-muted/30 text-center space-y-2">
+                                    <p className="text-sm text-muted-foreground">No retainer agreement has been prepared yet.</p>
+                                    <p className="text-xs text-muted-foreground">Your agency will prepare your retainer agreement shortly.</p>
+                                  </div>
+                                )}
+                              </div>
                             ) : item.form === "strategyMeeting" ? (
                               <form onSubmit={handleStrategyMeetingSubmit} className="mt-3 ml-8 space-y-3">
                                 <div className="space-y-2">
