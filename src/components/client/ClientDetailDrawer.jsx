@@ -61,9 +61,35 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
   const clientAssets = assets.filter((a) => a.client_id === client.id);
 
   const allChecklistKeys = [
-    { key: "welcome_email_sent", label: "Welcome email sent" },
+    {
+      key: "welcome_email_sent",
+      label: "Welcome email sent",
+      action: checklist && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setEmailModalOpen(true); }}
+          className="sm:hidden inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
+        >
+          <Mail className="w-3 h-3 mr-1" />
+          {checklist.welcome_email_sent ? "Sent" : "Draft Email"}
+        </button>
+      ),
+    },
     { key: "portal_access_granted", label: "Portal access granted" },
-    { key: "welcome_call_scheduled", label: "Welcome call scheduled" },
+    {
+      key: "welcome_call_scheduled",
+      label: "Welcome call scheduled",
+      action: checklist && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setCallModalOpen(true); }}
+          className="sm:hidden inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
+        >
+          <Phone className="w-3 h-3 mr-1" />
+          {checklist.welcome_call_scheduled ? "Scheduled" : "Schedule Call"}
+        </button>
+      ),
+    },
     { key: "brand_assets_collected", label: "Brand assets collected" },
     { key: "business_goals_documented", label: "Business goals documented" },
     { key: "questionnaire_completed", label: "Questionnaire completed" },
