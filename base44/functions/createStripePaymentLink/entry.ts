@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import Stripe from 'npm:stripe@17.0.0';
 
 Deno.serve(async (req) => {
   try {
@@ -18,19 +19,51 @@ Deno.serve(async (req) => {
       );
     }
 
-    // For now, return a placeholder Stripe link
-    // In production, you would call the Stripe API here
-    const stripePaymentLink = `https://checkout.stripe.com/pay/cs_live_placeholder_${invoiceId}`;
+    const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeSecret) {
+      return Response.json(
+        { error: 'Stripe not configured. Please set STRIPE_SECRET_KEY in environment variables.' },
+        { status: 500 }
+      );
+    }
 
-    // Update invoice with stripe_payment_intent_id
+    const stripe = new Stripe(stripeSecret);
+
+    // Create Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `Invoice Payment - ${clientName || 'Client'}`,
+              description: `Invoice ${invoiceId}`,
+            },
+            unit_amount: Math.round(amount * 100), // Convert to cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${req.headers.get('origin')}/client-portal/invoices?payment=success`,
+      cancel_url: `${req.headers.get('origin')}/client-portal/invoices?payment=cancelled`,
+      customer_email: clientEmail,
+      metadata: {
+        invoiceId,
+        type: 'invoice_payment',
+      },
+    });
+
+    // Update invoice with Stripe payment intent ID
     await base44.asServiceRole.entities.Invoice.update(invoiceId, {
-      stripe_payment_intent_id: `pi_${invoiceId}`,
+      stripe_payment_intent_id: session.payment_intent as string,
     });
 
     return Response.json({
       success: true,
-      paymentLink: stripePaymentLink,
-      message: 'Payment link created. Stripe integration ready for setup.',
+      paymentLink: session.url,
+      message: 'Payment link created successfully',
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
