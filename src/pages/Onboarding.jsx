@@ -19,6 +19,7 @@ const navigationItems = [
   { label: "Projects", href: "/projects" },
   { label: "Invoices", href: "/invoices" },
   { label: "Retainers", href: "/retainers" },
+  { label: "Support Tickets", href: "/support" },
   { label: "Designer", href: "/designer" },
   { label: "QR Code", href: "/qr-code" },
 ];
