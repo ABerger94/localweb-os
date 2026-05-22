@@ -93,14 +93,24 @@ export default function ClientPortalInvoices() {
                   </div>
                   {invoice.status === "Pending" && (
                     <Button onClick={async () => {
-                      const res = await base44.functions.invoke("createStripePaymentLink", {
-                        invoiceId: invoice.id,
-                        amount: invoice.amount,
-                        clientEmail: currentClient.contact_email,
-                        clientName: currentClient.business_name,
-                      });
-                      if (res.data?.paymentLink) {
-                        window.location.href = res.data.paymentLink;
+                      try {
+                        const res = await base44.functions.invoke("createStripePaymentLink", {
+                          invoiceId: invoice.id,
+                          amount: invoice.amount,
+                          clientEmail: currentClient.contact_email,
+                          clientName: currentClient.business_name,
+                        });
+                        if (res.data?.paymentLink) {
+                          // Check if running in iframe
+                          if (window.self !== window.top) {
+                            alert("For security reasons, please open this page in a full browser window to complete payment.");
+                            return;
+                          }
+                          window.open(res.data.paymentLink, "_blank");
+                        }
+                      } catch (error) {
+                        console.error("Payment error:", error);
+                        alert("Failed to initiate payment. Please try again.");
                       }
                     }}>
                       Pay Now
