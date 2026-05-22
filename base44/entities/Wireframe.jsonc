@@ -1,0 +1,57 @@
+{
+  "name": "Wireframe",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client entity"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Reference to Project entity (optional)"
+    },
+    "page_name": {
+      "type": "string",
+      "description": "Name of the page (e.g., Homepage, About, Contact)"
+    },
+    "sections": {
+      "type": "array",
+      "description": "Array of page sections",
+      "items": {
+        "type": "object",
+        "properties": {
+          "section_type": {
+            "type": "string",
+            "description": "Hero, Features, Testimonials, CTA, etc."
+          },
+          "description": {
+            "type": "string",
+            "description": "Section description"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "In Review",
+        "Approved"
+      ],
+      "default": "Draft",
+      "description": "Wireframe status"
+    },
+    "figma_link": {
+      "type": "string",
+      "description": "Optional Figma link to full design"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "client_id",
+    "page_name"
+  ]
+}

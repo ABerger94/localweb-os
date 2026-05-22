@@ -1,0 +1,47 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client entity"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Name of the project"
+    },
+    "description": {
+      "type": "string",
+      "description": "Project description and scope"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Project due date"
+    },
+    "deliverable_url": {
+      "type": "string",
+      "description": "URL to the final deliverable (website, mockup, etc.)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Review",
+        "Approved",
+        "Delivered"
+      ],
+      "default": "Not Started",
+      "description": "Project status"
+    },
+    "feedback": {
+      "type": "string",
+      "description": "Client feedback or revision notes"
+    }
+  },
+  "required": [
+    "client_id",
+    "project_name"
+  ]
+}

@@ -6,6 +6,15 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
+import Dashboard from '@/pages/Dashboard';
+import Clients from '@/pages/Clients';
+import Projects from '@/pages/Projects';
+import Invoices from '@/pages/Invoices';
+import Retainers from '@/pages/Retainers';
+import Designer from '@/pages/Designer';
+import ClientPortal from '@/pages/ClientPortal';
+import ClientPortalProjects from '@/pages/ClientPortalProjects';
+import ClientPortalInvoices from '@/pages/ClientPortalInvoices';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -33,7 +42,19 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      {/* Agency Routes */}
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/clients" element={<Clients />} />
+      <Route path="/projects" element={<Projects />} />
+      <Route path="/invoices" element={<Invoices />} />
+      <Route path="/retainers" element={<Retainers />} />
+      <Route path="/designer" element={<Designer />} />
+      
+      {/* Client Portal Routes */}
+      <Route path="/client-portal" element={<ClientPortal />} />
+      <Route path="/client-portal/projects" element={<ClientPortalProjects />} />
+      <Route path="/client-portal/invoices" element={<ClientPortalInvoices />} />
+      
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

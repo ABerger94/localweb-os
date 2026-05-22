@@ -1,0 +1,44 @@
+{
+  "name": "PitchPage",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client entity"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Reference to Project entity (optional)"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Unique URL slug for public access (e.g., client-name-website)"
+    },
+    "generated_html": {
+      "type": "string",
+      "description": "Full HTML/Tailwind code for the website"
+    },
+    "conversation_history": {
+      "type": "string",
+      "description": "JSON array of conversation messages for iterative editing"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published"
+      ],
+      "default": "Draft",
+      "description": "Publication status"
+    },
+    "title": {
+      "type": "string",
+      "description": "Title displayed on pitch page"
+    }
+  },
+  "required": [
+    "client_id",
+    "slug",
+    "generated_html"
+  ]
+}

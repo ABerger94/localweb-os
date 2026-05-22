@@ -1,0 +1,83 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "business_name": {
+      "type": "string",
+      "description": "Name of the client's business"
+    },
+    "business_type": {
+      "type": "string",
+      "description": "Type of business (e.g., restaurant, salon, retail)"
+    },
+    "contact_name": {
+      "type": "string",
+      "description": "Primary contact person's name"
+    },
+    "contact_email": {
+      "type": "string",
+      "description": "Primary contact email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "location": {
+      "type": "string",
+      "description": "City/area served"
+    },
+    "address": {
+      "type": "string",
+      "description": "Full business address"
+    },
+    "google_rating": {
+      "type": "number",
+      "description": "Google rating (1-5 stars)"
+    },
+    "brand_notes": {
+      "type": "string",
+      "description": "Internal notes on brand voice, colors, style"
+    },
+    "competitor_urls": {
+      "type": "string",
+      "description": "Competitor website URLs (comma-separated)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Lead",
+        "Active",
+        "Paused",
+        "Churned"
+      ],
+      "default": "Lead",
+      "description": "Client lifecycle status"
+    },
+    "pipeline_stage": {
+      "type": "string",
+      "enum": [
+        "Prospect",
+        "Mockup Sent",
+        "Pitch Meeting",
+        "Onboarding",
+        "Active Retainer",
+        "Churned"
+      ],
+      "default": "Prospect",
+      "description": "Sales pipeline stage"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the client portal user (for linking app users)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "General notes about the client"
+    }
+  },
+  "required": [
+    "business_name",
+    "business_type",
+    "contact_email"
+  ]
+}

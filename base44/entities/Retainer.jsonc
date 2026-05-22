@@ -1,0 +1,52 @@
+{
+  "name": "Retainer",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client entity"
+    },
+    "monthly_amount": {
+      "type": "number",
+      "description": "Monthly retainer amount in dollars"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Retainer start date"
+    },
+    "billing_cycle": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "annual"
+      ],
+      "default": "monthly",
+      "description": "Billing cycle frequency"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Paused",
+        "Cancelled"
+      ],
+      "default": "Active",
+      "description": "Retainer status"
+    },
+    "description": {
+      "type": "string",
+      "description": "Retainer scope (e.g., hosting + maintenance)"
+    },
+    "next_billing_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of next automated invoice"
+    }
+  },
+  "required": [
+    "client_id",
+    "monthly_amount"
+  ]
+}

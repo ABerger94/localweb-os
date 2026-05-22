@@ -1,0 +1,42 @@
+{
+  "name": "DesignAsset",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client entity"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Reference to Project entity (optional)"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "logo",
+        "color",
+        "font",
+        "image",
+        "icon"
+      ],
+      "description": "Type of design asset"
+    },
+    "asset_name": {
+      "type": "string",
+      "description": "Name of the asset (e.g., Primary Logo, Brand Blue)"
+    },
+    "asset_value": {
+      "type": "string",
+      "description": "Asset content (URL for images/logos, hex for colors, font name for fonts)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description and usage notes"
+    }
+  },
+  "required": [
+    "client_id",
+    "asset_type",
+    "asset_name"
+  ]
+}

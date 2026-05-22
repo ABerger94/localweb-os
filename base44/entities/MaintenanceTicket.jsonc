@@ -1,0 +1,57 @@
+{
+  "name": "MaintenanceTicket",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client entity"
+    },
+    "title": {
+      "type": "string",
+      "description": "Ticket title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the issue"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "In Progress",
+        "Resolved",
+        "Closed"
+      ],
+      "default": "Open",
+      "description": "Ticket status"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High",
+        "Critical"
+      ],
+      "default": "Medium",
+      "description": "Priority level"
+    },
+    "submitted_by": {
+      "type": "string",
+      "description": "Email of the client who submitted the ticket"
+    },
+    "response_notes": {
+      "type": "string",
+      "description": "Internal notes and response to ticket"
+    },
+    "resolved_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date ticket was resolved"
+    }
+  },
+  "required": [
+    "client_id",
+    "title"
+  ]
+}
