@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { checklistId, datetime, notes, proposedBy } = await req.json();
+    const { checklistId, datetime, notes, proposedBy, meetingType } = await req.json();
 
     if (!checklistId || !datetime || !proposedBy) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
@@ -30,9 +30,10 @@ Deno.serve(async (req) => {
 
     // Get existing history or create new array
     let history = [];
-    if (checklist.meeting_proposal_history) {
+    const historyField = meetingType === 'welcome' ? 'welcome_call_history' : 'meeting_proposal_history';
+    if (checklist[historyField]) {
       try {
-        history = JSON.parse(checklist.meeting_proposal_history);
+        history = JSON.parse(checklist[historyField]);
       } catch {
         history = [];
       }
@@ -40,20 +41,22 @@ Deno.serve(async (req) => {
     history.push(newProposal);
 
     // Update checklist with new proposal
-    await base44.entities.OnboardingChecklist.update(checklistId, {
-      strategy_meeting_date: datetime,
-      strategy_meeting_proposed_by: proposedBy,
-      strategy_meeting_confirmed: false,
-      meeting_proposal_history: JSON.stringify(history),
-    });
+    const updateData = {
+      [meetingType === 'welcome' ? 'welcome_call_date' : 'strategy_meeting_date']: datetime,
+      [meetingType === 'welcome' ? 'welcome_call_proposed_by' : 'strategy_meeting_proposed_by']: proposedBy,
+      [meetingType === 'welcome' ? 'welcome_call_confirmed' : 'strategy_meeting_confirmed']: false,
+      [historyField]: JSON.stringify(history),
+    };
+    await base44.entities.OnboardingChecklist.update(checklistId, updateData);
 
     // Send email notification
+    const meetingLabel = meetingType === 'welcome' ? 'Welcome Call' : 'Strategy Meeting';
     if (proposedBy === 'agency') {
       // Agency proposed - notify client
       await base44.integrations.Core.SendEmail({
         to: client.contact_email,
-        subject: 'Strategy Meeting - New Time Proposed',
-        body: `Hi ${client.contact_name || 'there'},\n\nYour agency has proposed a new time for your strategy meeting:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Notes: ${notes}\n\n` : ''}Please log into your client portal to confirm this time or suggest an alternative.\n\nBest regards,\nLocal Web Connect`,
+        subject: `${meetingLabel} - New Time Proposed`,
+        body: `Hi ${client.contact_name || 'there'},\n\nYour agency has proposed a new time for your ${meetingLabel.toLowerCase()}:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Notes: ${notes}\n\n` : ''}Please log into your client portal to confirm this time or suggest an alternative.\n\nBest regards,\nLocal Web Connect`,
       });
     } else {
       // Client proposed - notify agency admin
@@ -61,8 +64,8 @@ Deno.serve(async (req) => {
       for (const admin of admins) {
         await base44.integrations.Core.SendEmail({
           to: admin.email,
-          subject: `Strategy Meeting Request - ${client.business_name}`,
-          body: `Hi ${admin.full_name || 'there'},\n\n${client.contact_name} has requested a strategy meeting time:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Client notes: ${notes}\n\n` : ''}Log into the dashboard to confirm or suggest a new time.\n\nBest regards,\nLocal Web Connect`,
+          subject: `${meetingLabel} Request - ${client.business_name}`,
+          body: `Hi ${admin.full_name || 'there'},\n\n${client.contact_name} has requested a ${meetingLabel.toLowerCase()} time:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Client notes: ${notes}\n\n` : ''}Log into the dashboard to confirm or suggest a new time.\n\nBest regards,\nLocal Web Connect`,
         });
       }
     }

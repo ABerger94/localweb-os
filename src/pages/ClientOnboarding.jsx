@@ -523,21 +523,38 @@ export default function ClientOnboarding() {
                             ) : item.form === "strategyMeeting" ? (
                               checklist?.strategy_meeting_date && !checklist?.strategy_meeting_confirmed ? (
                                 <div className="mt-3 ml-8 p-3 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-xs font-medium text-blue-800">
-                                      {checklist.strategy_meeting_proposed_by === 'client' ? 'Your Request' : 'Agency Proposal'}
-                                    </p>
-                                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">
-                                      {checklist.strategy_meeting_proposed_by === 'client' ? 'Pending agency confirmation' : 'Awaiting your confirmation'}
-                                    </span>
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-xs font-medium text-blue-800">
+                                        {checklist.strategy_meeting_proposed_by === 'client' ? 'Your Request' : 'Agency Proposal'}
+                                      </p>
+                                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">
+                                        {checklist.strategy_meeting_proposed_by === 'client' ? 'Pending agency confirmation' : 'Awaiting your confirmation'}
+                                      </span>
+                                    </div>
                                   </div>
                                   <p className="text-sm font-medium text-blue-900">
                                     📅 {new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
                                   </p>
                                   {checklist.strategy_meeting_proposed_by === 'client' ? (
-                                    <p className="text-xs text-blue-700">
-                                      Your agency will review and confirm this time shortly. You'll receive an email confirmation.
-                                    </p>
+                                    <div className="space-y-2">
+                                      <p className="text-xs text-blue-700">
+                                        Your agency will review and confirm this time shortly. You'll receive an email confirmation.
+                                      </p>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 text-xs"
+                                        onClick={() => {
+                                          setMeetingDateTime('');
+                                          setMeetingNotes('');
+                                          const form = document.getElementById('strategy-meeting-form');
+                                          if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        }}
+                                      >
+                                        ↺ Suggest Different Time
+                                      </Button>
+                                    </div>
                                   ) : (
                                     <div className="space-y-3">
                                       <div className="p-3 bg-white rounded border border-blue-200">

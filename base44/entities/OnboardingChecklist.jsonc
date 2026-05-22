@@ -21,6 +21,27 @@
       "default": false,
       "description": "Welcome/kickoff call has been scheduled"
     },
+    "welcome_call_date": {
+      "type": "string",
+      "description": "Proposed date/time for welcome call (ISO string)"
+    },
+    "welcome_call_proposed_by": {
+      "type": "string",
+      "enum": [
+        "client",
+        "agency"
+      ],
+      "description": "Who proposed the current welcome call time"
+    },
+    "welcome_call_confirmed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Welcome call time has been confirmed by both parties"
+    },
+    "welcome_call_history": {
+      "type": "string",
+      "description": "JSON array of welcome call proposal history [{proposed_by, datetime, notes, confirmed}]"
+    },
     "brand_assets_collected": {
       "type": "boolean",
       "default": false,

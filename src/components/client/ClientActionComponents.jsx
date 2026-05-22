@@ -127,9 +127,9 @@ export function CallScheduler({ client, checklistId, onScheduled, onCancel, inli
     if (checklistId) {
       base44.entities.OnboardingChecklist.get(checklistId).then((data) => {
         setChecklist(data);
-        if (data?.meeting_proposal_history) {
+        if (data?.welcome_call_history) {
           try {
-            setProposalHistory(JSON.parse(data.meeting_proposal_history));
+            setProposalHistory(JSON.parse(data.welcome_call_history));
           } catch {
             setProposalHistory([]);
           }
@@ -139,20 +139,20 @@ export function CallScheduler({ client, checklistId, onScheduled, onCancel, inli
   }, [checklistId]);
 
   const proposeTime = useMutation({
-    mutationFn: (payload) => base44.functions.invoke("proposeMeetingTime", payload),
+    mutationFn: (payload) => base44.functions.invoke("proposeMeetingTime", { ...payload, meetingType: 'welcome' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] });
       base44.entities.OnboardingChecklist.get(checklistId).then((data) => {
         setChecklist(data);
-        if (data?.meeting_proposal_history) {
-          setProposalHistory(JSON.parse(data.meeting_proposal_history));
+        if (data?.welcome_call_history) {
+          setProposalHistory(JSON.parse(data.welcome_call_history));
         }
       });
     },
   });
 
   const confirmTime = useMutation({
-    mutationFn: (payload) => base44.functions.invoke("confirmMeetingTime", payload),
+    mutationFn: (payload) => base44.functions.invoke("confirmMeetingTime", { ...payload, meetingType: 'welcome' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] });
       onScheduled?.();
@@ -160,25 +160,27 @@ export function CallScheduler({ client, checklistId, onScheduled, onCancel, inli
   });
 
   const handlePropose = async () => {
-    if (!selectedDate || !time) return;
-    
-    const datetime = new Date(selectedDate);
-    const [hours, minutes] = time.split(":");
-    datetime.setHours(parseInt(hours), parseInt(minutes));
+  if (!selectedDate || !time) return;
 
-    await proposeTime.mutateAsync({
-      checklistId,
-      datetime: datetime.toISOString(),
-      notes,
-      proposedBy: "agency",
-    });
+  const datetime = new Date(selectedDate);
+  const [hours, minutes] = time.split(":");
+  datetime.setHours(parseInt(hours), parseInt(minutes));
+
+  await proposeTime.mutateAsync({
+    checklistId,
+    datetime: datetime.toISOString(),
+    notes,
+    proposedBy: "agency",
+    meetingType: "welcome",
+  });
   };
 
   const handleConfirm = async () => {
-    await confirmTime.mutateAsync({
-      checklistId,
-      confirmedBy: "agency",
-    });
+  await confirmTime.mutateAsync({
+    checklistId,
+    confirmedBy: "agency",
+    meetingType: "welcome",
+  });
   };
 
   const latestProposal = proposalHistory.length > 0 ? proposalHistory[proposalHistory.length - 1] : null;
@@ -204,32 +206,72 @@ export function CallScheduler({ client, checklistId, onScheduled, onCancel, inli
 
       {latestProposal && (
         <div className={cn(
-          "p-3 rounded-lg border flex items-start gap-3",
+          "p-3 rounded-lg border space-y-2",
           latestProposal.confirmed 
             ? "bg-green-50 border-green-200" 
             : "bg-amber-50 border-amber-200"
         )}>
-          {latestProposal.confirmed ? (
-            <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
-          ) : (
-            <Hourglass className="w-5 h-5 text-amber-600 mt-0.5" />
-          )}
-          <div className="flex-1">
-            <p className="font-medium text-sm">
-              {latestProposal.confirmed ? "Call Confirmed" : "Awaiting Client Confirmation"}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {new Date(latestProposal.datetime).toLocaleString(undefined, { 
-                dateStyle: 'medium', 
-                timeStyle: 'short' 
-              })}
-            </p>
-            {latestProposal.notes && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {latestProposal.notes}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {latestProposal.confirmed ? (
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+              ) : (
+                <Hourglass className="w-5 h-5 text-amber-600" />
+              )}
+              <p className="font-medium text-sm">
+                {latestProposal.confirmed ? "Call Confirmed" : 
+                 latestProposal.proposed_by === 'client' ? "Your Request" : "Agency Proposal"}
               </p>
+            </div>
+            {!latestProposal.confirmed && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
+                {latestProposal.proposed_by === 'client' ? "Awaiting agency confirmation" : "Awaiting your confirmation"}
+              </span>
             )}
           </div>
+          <p className="text-sm font-medium text-foreground">
+            📅 {new Date(latestProposal.datetime).toLocaleString(undefined, { 
+              dateStyle: 'medium', 
+              timeStyle: 'short' 
+            })}
+          </p>
+          {latestProposal.notes && (
+            <p className="text-xs text-muted-foreground">
+              {latestProposal.notes}
+            </p>
+          )}
+          
+          {!latestProposal.confirmed && latestProposal.proposed_by === 'client' && (
+            <div className="flex gap-2 pt-2 border-t">
+              <Button
+                size="sm"
+                className="flex-1 bg-green-600 hover:bg-green-700"
+                onClick={handleConfirm}
+                disabled={confirmTime.isPending}
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Confirm This Time
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setSelectedDate(null);
+                  setTime("");
+                  setNotes("");
+                }}
+              >
+                ↺ Suggest Different Time
+              </Button>
+            </div>
+          )}
+          
+          {!latestProposal.confirmed && latestProposal.proposed_by === 'agency' && (
+            <p className="text-xs text-amber-700 italic">
+              Waiting for client to confirm. They can also suggest an alternative time.
+            </p>
+          )}
         </div>
       )}
       
@@ -281,17 +323,6 @@ export function CallScheduler({ client, checklistId, onScheduled, onCancel, inli
             >
               {isPending ? "Propose Alternative" : "Propose Time"} 
               {isPending ? "" : " & Notify Client"}
-            </Button>
-          )}
-          
-          {isPending && (
-            <Button 
-              onClick={handleConfirm} 
-              variant="secondary"
-              disabled={confirmTime.isPending}
-            >
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-              Confirm
             </Button>
           )}
           

@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { checklistId, confirmedBy } = await req.json();
+    const { checklistId, confirmedBy, meetingType } = await req.json();
 
     if (!checklistId || !confirmedBy) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
@@ -19,11 +19,17 @@ Deno.serve(async (req) => {
     const checklist = await base44.entities.OnboardingChecklist.get(checklistId);
     const client = await base44.entities.Client.get(checklist.client_id);
 
+    // Determine which fields to use based on meeting type
+    const historyField = meetingType === 'welcome' ? 'welcome_call_history' : 'meeting_proposal_history';
+    const confirmedField = meetingType === 'welcome' ? 'welcome_call_confirmed' : 'strategy_meeting_confirmed';
+    const heldField = meetingType === 'welcome' ? 'welcome_call_scheduled' : 'strategy_meeting_held';
+    const dateField = meetingType === 'welcome' ? 'welcome_call_date' : 'strategy_meeting_date';
+
     // Update meeting proposal history to mark latest as confirmed
     let history = [];
-    if (checklist.meeting_proposal_history) {
+    if (checklist[historyField]) {
       try {
-        history = JSON.parse(checklist.meeting_proposal_history);
+        history = JSON.parse(checklist[historyField]);
         // Mark the latest proposal as confirmed
         if (history.length > 0) {
           history[history.length - 1].confirmed = true;
@@ -35,18 +41,21 @@ Deno.serve(async (req) => {
 
     // Update checklist
     await base44.entities.OnboardingChecklist.update(checklistId, {
-      strategy_meeting_confirmed: true,
-      strategy_meeting_held: true,
-      meeting_proposal_history: JSON.stringify(history),
+      [confirmedField]: true,
+      [heldField]: true,
+      [historyField]: JSON.stringify(history),
     });
 
     // Send confirmation emails
+    const meetingLabel = meetingType === 'welcome' ? 'Welcome Call' : 'Strategy Meeting';
+    const meetingDate = checklist[dateField];
+    
     if (confirmedBy === 'agency') {
       // Agency confirmed - notify client
       await base44.integrations.Core.SendEmail({
         to: client.contact_email,
-        subject: 'Strategy Meeting Confirmed! ✅',
-        body: `Hi ${client.contact_name || 'there'},\n\nGreat news! Your strategy meeting has been confirmed for:\n\n📅 ${new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\nWe're looking forward to speaking with you!\n\nBest regards,\nLocal Web Connect`,
+        subject: `${meetingLabel} Confirmed! ✅`,
+        body: `Hi ${client.contact_name || 'there'},\n\nGreat news! Your ${meetingLabel.toLowerCase()} has been confirmed for:\n\n📅 ${new Date(meetingDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\nWe're looking forward to speaking with you!\n\nBest regards,\nLocal Web Connect`,
       });
     } else {
       // Client confirmed - notify agency
@@ -54,8 +63,8 @@ Deno.serve(async (req) => {
       for (const admin of admins) {
         await base44.integrations.Core.SendEmail({
           to: admin.email,
-          subject: `Meeting Confirmed - ${client.business_name}`,
-          body: `Hi ${admin.full_name || 'there'},\n\n${client.contact_name} has confirmed the strategy meeting for:\n\n📅 ${new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\nThe onboarding checklist has been updated.\n\nBest regards,\nLocal Web Connect`,
+          subject: `${meetingLabel} Confirmed - ${client.business_name}`,
+          body: `Hi ${admin.full_name || 'there'},\n\n${client.contact_name} has confirmed the ${meetingLabel.toLowerCase()} for:\n\n📅 ${new Date(meetingDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\nThe onboarding checklist has been updated.\n\nBest regards,\nLocal Web Connect`,
         });
       }
     }
