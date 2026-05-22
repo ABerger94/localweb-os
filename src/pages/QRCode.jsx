@@ -15,6 +15,7 @@ const navigationItems = [
   { label: "Retainers", href: "/retainers", icon: null },
   { label: "Support Tickets", href: "/support", icon: null },
   { label: "Designer", href: "/designer", icon: null },
+  { label: "QR Code", href: "/qr-code", icon: null },
 ];
 
 export default function QRCodePage() {
