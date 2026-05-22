@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, Lock } from "lucide-react";
+import { CheckCircle2, Circle, Lock, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ClientProfileSetup from "@/components/client/ClientProfileSetup";
 import OnboardingQuestionnaire from "@/components/client/OnboardingQuestionnaire";
@@ -127,12 +127,27 @@ export default function ClientOnboarding() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] }),
   });
 
+  const [brandAssetFiles, setBrandAssetFiles] = useState([]);
+  const [uploadingAssets, setUploadingAssets] = useState(false);
+
   const handleBrandAssetsSubmit = async (e) => {
     e.preventDefault();
-    if (formData.brandAssets.trim()) {
-      await mutation.mutateAsync({ key: "brand_assets_collected", value: true });
-      setFormData(prev => ({ ...prev, brandAssets: "" }));
+    if (!formData.brandAssets.trim() && brandAssetFiles.length === 0) return;
+    setUploadingAssets(true);
+    for (const file of brandAssetFiles) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.DesignAsset.create({
+        client_id: currentClient.id,
+        asset_type: file.type.startsWith("image/") ? "image" : "image",
+        asset_name: file.name,
+        asset_value: file_url,
+        description: formData.brandAssets,
+      });
     }
+    setUploadingAssets(false);
+    await mutation.mutateAsync({ key: "brand_assets_collected", value: true });
+    setFormData(prev => ({ ...prev, brandAssets: "" }));
+    setBrandAssetFiles([]);
   };
 
   const handleBusinessGoalsSubmit = async (e) => {
@@ -288,10 +303,37 @@ export default function ClientOnboarding() {
                                   else if (item.form === "businessGoals") handleBusinessGoalsSubmit(e);
                                   else if (item.form === "communicationChannel") handleCommunicationChannelSubmit(e);
                                 }}
-                                className="mt-3 ml-8 space-y-2"
+                                className="mt-3 ml-8 space-y-3"
                               >
+                                {item.form === "brandAssets" && (
+                                  <div className="space-y-2">
+                                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-border rounded-lg cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors">
+                                      <Upload className="w-5 h-5 text-muted-foreground mb-1" />
+                                      <span className="text-xs text-muted-foreground">Click to upload logos, images, fonts</span>
+                                      <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*,.pdf,.zip,.ttf,.otf,.woff"
+                                        className="hidden"
+                                        onChange={(e) => setBrandAssetFiles(Array.from(e.target.files))}
+                                      />
+                                    </label>
+                                    {brandAssetFiles.length > 0 && (
+                                      <div className="flex flex-wrap gap-2">
+                                        {brandAssetFiles.map((f, i) => (
+                                          <div key={i} className="flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs">
+                                            <span className="max-w-[120px] truncate">{f.name}</span>
+                                            <button type="button" onClick={() => setBrandAssetFiles(prev => prev.filter((_, j) => j !== i))}>
+                                              <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                                 <Textarea
-                                  placeholder={item.label}
+                                  placeholder={item.form === "brandAssets" ? "Add any notes about your brand (colors, fonts, style preferences)..." : item.label}
                                   value={getFormField()}
                                   onChange={(e) => {
                                     if (item.form === "brandAssets") setFormData(prev => ({ ...prev, brandAssets: e.target.value }));
@@ -300,8 +342,8 @@ export default function ClientOnboarding() {
                                   }}
                                   className="text-sm h-20"
                                 />
-                                <Button size="sm" type="submit">
-                                  Submit
+                                <Button size="sm" type="submit" disabled={item.form === "brandAssets" && uploadingAssets}>
+                                  {item.form === "brandAssets" && uploadingAssets ? "Uploading..." : "Submit"}
                                 </Button>
                               </form>
                             )
