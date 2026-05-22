@@ -12,3 +12,17 @@ export const base44 = createClient({
   requiresAuth: false,
   appBaseUrl
 });
+
+// Suppress analytics logging 403 errors for client portal users
+if (typeof window !== 'undefined') {
+  const originalFetch = window.fetch;
+  window.fetch = function(...args) {
+    const url = args[0] || '';
+    if (typeof url === 'string' && url.includes('/api/app-logs/') && url.includes('/log-user-in-app/')) {
+      return originalFetch.apply(this, args).catch(() => {
+        // Silently ignore analytics logging errors
+      });
+    }
+    return originalFetch.apply(this, args);
+  };
+}
