@@ -20,6 +20,7 @@ import Onboarding from '@/pages/Onboarding';
 import ClientOnboarding from '@/pages/ClientOnboarding';
 import ClientPortalSupport from '@/pages/ClientPortalSupport';
 import ClientPortalRetainers from '@/pages/ClientPortalRetainers';
+import ClientPortalAssets from '@/pages/ClientPortalAssets';
 import SupportTickets from '@/pages/SupportTickets';
 import QRCodePage from '@/pages/QRCode';
 
@@ -82,6 +83,7 @@ const AuthenticatedApp = () => {
       <Route path="/client-portal/projects" element={<ClientPortalProjects />} />
       <Route path="/client-portal/invoices" element={<ClientPortalInvoices />} />
       <Route path="/client-portal/retainers" element={<ClientPortalRetainers />} />
+      <Route path="/client-portal/assets" element={<ClientPortalAssets />} />
       
       <Route path="*" element={<PageNotFound />} />
     </Routes>

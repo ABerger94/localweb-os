@@ -23,7 +23,7 @@ const navigationItems = [
   { label: "Invoices", href: "/client-portal/invoices", icon: null },
   { label: "Retainers", href: "/client-portal/retainers", icon: null },
   { label: "Support Tickets", href: "/client-portal/support", icon: null },
-  { label: "Account", href: "/client-portal/account", icon: null },
+  { label: "Brand Assets", href: "/client-portal/assets", icon: null },
 ];
 
 export default function ClientPortal() {
