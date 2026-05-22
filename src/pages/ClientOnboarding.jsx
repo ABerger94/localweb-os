@@ -153,6 +153,10 @@ export default function ClientOnboarding() {
   const handleBusinessGoalsSubmit = async (e) => {
     e.preventDefault();
     if (formData.businessGoals.trim()) {
+      // Save business goals to the client profile's brand_notes field
+      await base44.entities.Client.update(currentClient.id, {
+        brand_notes: [currentClient.brand_notes, `Business Goals: ${formData.businessGoals}`].filter(Boolean).join("\n\n"),
+      });
       await mutation.mutateAsync({ key: "business_goals_documented", value: true });
       setFormData(prev => ({ ...prev, businessGoals: "" }));
     }
@@ -161,6 +165,10 @@ export default function ClientOnboarding() {
   const handleCommunicationChannelSubmit = async (e) => {
     e.preventDefault();
     if (formData.communicationChannel.trim()) {
+      // Save preferred communication channel to the client's notes
+      await base44.entities.Client.update(currentClient.id, {
+        notes: [currentClient.notes, `Preferred Communication: ${formData.communicationChannel}`].filter(Boolean).join("\n\n"),
+      });
       await mutation.mutateAsync({ key: "communication_channels_set", value: true });
       setFormData(prev => ({ ...prev, communicationChannel: "" }));
     }

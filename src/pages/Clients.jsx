@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
+import ClientDetailDrawer from "@/components/client/ClientDetailDrawer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ const navigationItems = [
 
 export default function Clients() {
   const [search, setSearch] = useState("");
+  const [selectedClient, setSelectedClient] = useState(null);
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list(),
@@ -57,7 +59,11 @@ export default function Clients() {
 
           <div className="grid grid-cols-1 gap-4">
             {filteredClients.map((client) => (
-              <Card key={client.id} className="p-4">
+              <Card
+                key={client.id}
+                className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setSelectedClient(client)}
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-semibold text-foreground">
@@ -69,12 +75,14 @@ export default function Clients() {
                     <div className="flex gap-2 mt-3 flex-wrap">
                       <StatusBadge status={client.status} />
                       <StatusBadge status={client.pipeline_stage} />
+                      {client.location && <span className="text-xs text-muted-foreground">{client.location}</span>}
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:text-destructive"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -82,6 +90,12 @@ export default function Clients() {
               </Card>
             ))}
           </div>
+
+          <ClientDetailDrawer
+            client={selectedClient}
+            open={!!selectedClient}
+            onClose={() => setSelectedClient(null)}
+          />
         </div>
       </div>
     </div>

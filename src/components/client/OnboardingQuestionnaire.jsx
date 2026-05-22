@@ -37,13 +37,22 @@ export default function OnboardingQuestionnaire({ clientId, existingResponse, on
     mutationFn: async () => {
       const data = { client_id: clientId, ...form, budget_range: Number(form.budget_range) };
       if (existingResponse?.id) {
-        return base44.entities.OnboardingQuestionnaire.update(existingResponse.id, data);
+        await base44.entities.OnboardingQuestionnaire.update(existingResponse.id, data);
       } else {
-        return base44.entities.OnboardingQuestionnaire.create(data);
+        await base44.entities.OnboardingQuestionnaire.create(data);
+      }
+      // Sync key questionnaire data back to the Client profile
+      const clientUpdates = {};
+      if (form.target_audience) clientUpdates.brand_notes = `Target Audience: ${form.target_audience}`;
+      if (form.competitor_names) clientUpdates.competitor_urls = form.competitor_names;
+      if (form.website_url) clientUpdates.notes = `Website: ${form.website_url}`;
+      if (Object.keys(clientUpdates).length > 0) {
+        await base44.entities.Client.update(clientId, clientUpdates);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["onboarding-questionnaire"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
       onComplete();
     },
     onError: (err) => {
