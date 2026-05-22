@@ -25,8 +25,7 @@ const CLIENT_STAGES = [
     label: "Welcome & Access",
     description: "Get set up and ready to start",
     items: [
-      { key: "welcome_call_scheduled", label: "Confirm your welcome call time", clientAction: true },
-      { key: "portal_access_granted", label: "Log into your client portal", clientAction: false },
+      { key: "portal_access_granted", label: "Log into your client portal", clientAction: false, autoComplete: true },
     ],
   },
   {
@@ -88,6 +87,19 @@ export default function ClientOnboarding() {
   }, [currentUser, clients]);
 
   const checklist = checklists.find((ch) => ch.client_id === currentClient?.id);
+
+  // Auto-mark portal_access_granted as true when client views this page
+  useEffect(() => {
+    if (!currentClient || checklistsLoading) return;
+    if (checklist && checklist.portal_access_granted) return;
+    if (checklist) {
+      base44.entities.OnboardingChecklist.update(checklist.id, { portal_access_granted: true })
+        .then(() => queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] }));
+    } else {
+      base44.entities.OnboardingChecklist.create({ client_id: currentClient.id, portal_access_granted: true })
+        .then(() => queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] }));
+    }
+  }, [currentClient, checklist, checklistsLoading]);
 
   const mutation = useMutation({
     mutationFn: async ({ key, value }) => {
@@ -220,7 +232,7 @@ export default function ClientOnboarding() {
                             {item.clientAction && !done && (
                               <p className="text-xs text-primary mt-0.5">Action required by you</p>
                             )}
-                            {!item.clientAction && !done && (
+                            {!item.clientAction && !item.autoComplete && !done && (
                               <p className="text-xs text-muted-foreground mt-0.5">Your agency will complete this</p>
                             )}
                           </div>
