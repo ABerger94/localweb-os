@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import ClientProfileSetup from "@/components/client/ClientProfileSetup";
 import OnboardingQuestionnaire from "@/components/client/OnboardingQuestionnaire";
+import StripePaymentForm from "@/components/invoices/StripePaymentForm";
 
 const navigationItems = [
   { label: "Dashboard", href: "/client-portal" },
@@ -238,23 +241,44 @@ export default function ClientOnboarding() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [retainerSigning, setRetainerSigning] = useState(false);
   const [retainerAgreed, setRetainerAgreed] = useState(false);
+  const [payingInvoice, setPayingInvoice] = useState(null);
+  const [stripePromise, setStripePromise] = useState(null);
+  const [clientSecret, setClientSecret] = useState(null);
 
-  const handlePayInvoice = async () => {
+  const handleInitiatePayment = async () => {
     if (!setupInvoice) return;
-    setPaymentLoading(true);
-    const res = await base44.functions.invoke("createStripePaymentLink", {
-      invoiceId: setupInvoice.id,
-      amount: setupInvoice.amount,
-      clientEmail: currentClient.contact_email,
-      clientName: currentClient.business_name,
-    });
-    setPaymentLoading(false);
-    if (res.data?.paymentLink) {
-      window.open(res.data.paymentLink, "_blank");
-      // Mark as paid after redirect (optimistic for now — in production a webhook would do this)
-      await base44.entities.Invoice.update(setupInvoice.id, { status: "Paid", paid_date: new Date().toISOString().split("T")[0] });
-      await mutation.mutateAsync({ key: "initial_invoice_sent", value: true });
+    try {
+      setPaymentLoading(true);
+      const res = await base44.functions.invoke("createStripePaymentLink", {
+        invoiceId: setupInvoice.id,
+        amount: setupInvoice.amount,
+        clientEmail: currentClient.contact_email,
+        clientName: currentClient.business_name,
+      });
+      
+      if (res.data?.clientSecret && res.data?.publishableKey) {
+        setClientSecret(res.data.clientSecret);
+        setStripePromise(loadStripe(res.data.publishableKey));
+        setPayingInvoice(setupInvoice);
+      } else {
+        alert("Payment setup failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert("Failed to initiate payment: " + (error.response?.data?.error || error.message));
+    } finally {
+      setPaymentLoading(false);
     }
+  };
+
+  const handlePaymentSuccess = async () => {
+    await base44.entities.Invoice.update(payingInvoice.id, {
+      status: "Paid",
+      paid_date: new Date().toISOString().split("T")[0],
+    });
+    setPayingInvoice(null);
+    setClientSecret(null);
+    await mutation.mutateAsync({ key: "initial_invoice_sent", value: true });
   };
 
   const handleSignRetainer = async () => {
@@ -415,12 +439,11 @@ export default function ClientOnboarding() {
                                     <Button
                                       size="sm"
                                       className="gap-2 w-full"
-                                      onClick={handlePayInvoice}
+                                      onClick={handleInitiatePayment}
                                       disabled={paymentLoading}
                                     >
                                       <CreditCard className="w-4 h-4" />
-                                      {paymentLoading ? "Redirecting to payment..." : "Pay Now"}
-                                      <ExternalLink className="w-3 h-3" />
+                                      {paymentLoading ? "Loading..." : "Pay Now"}
                                     </Button>
                                   </div>
                                 ) : (
@@ -633,6 +656,34 @@ export default function ClientOnboarding() {
           </div>
         </div>
       </div>
+
+      {/* Embedded Payment Modal */}
+      {payingInvoice && stripePromise && clientSecret && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full p-6 relative">
+            <button
+              onClick={() => {
+                setPayingInvoice(null);
+                setClientSecret(null);
+              }}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <h3 className="text-lg font-semibold mb-4">
+              Pay Setup Invoice
+            </h3>
+            
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <StripePaymentForm 
+                amount={payingInvoice.amount} 
+                onSuccess={handlePaymentSuccess}
+              />
+            </Elements>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
