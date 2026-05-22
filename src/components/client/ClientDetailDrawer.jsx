@@ -63,9 +63,15 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
     {
       key: "welcome_email_sent",
       label: "Welcome email sent",
-      action: !checklist?.welcome_email_sent && (
-        <Button size="sm" variant="outline" className="h-5 text-xs px-2 py-0 ml-auto" onClick={() => setEmailModalOpen(true)}>
-          <Mail className="w-3 h-3 mr-1" /> Draft Email
+      action: checklist && (
+        <Button 
+          size="sm" 
+          variant={checklist.welcome_email_sent ? "ghost" : "outline"} 
+          className="h-5 text-xs px-2 py-0 ml-auto" 
+          onClick={() => setEmailModalOpen(true)}
+        >
+          <Mail className="w-3 h-3 mr-1" /> 
+          {checklist.welcome_email_sent ? "Sent" : "Draft Email"}
         </Button>
       ),
     },
@@ -73,9 +79,15 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
     {
       key: "welcome_call_scheduled",
       label: "Welcome call scheduled",
-      action: !checklist?.welcome_call_scheduled && (
-        <Button size="sm" variant="outline" className="h-5 text-xs px-2 py-0 ml-auto" onClick={() => setCallModalOpen(true)}>
-          <Phone className="w-3 h-3 mr-1" /> Schedule Call
+      action: checklist && (
+        <Button 
+          size="sm" 
+          variant={checklist.welcome_call_scheduled ? "ghost" : "outline"} 
+          className="h-5 text-xs px-2 py-0 ml-auto" 
+          onClick={() => setCallModalOpen(true)}
+        >
+          <Phone className="w-3 h-3 mr-1" /> 
+          {checklist.welcome_call_scheduled ? "Scheduled" : "Schedule Call"}
         </Button>
       ),
     },
