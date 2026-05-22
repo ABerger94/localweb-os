@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, ChevronDown, ChevronUp, Users, Zap, CalendarCheck, CalendarX, Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EmailComposer, CallScheduler } from "@/components/client/ClientActionComponents.jsx";
 
 const navigationItems = [
   { label: "Dashboard", href: "/" },
@@ -81,13 +82,15 @@ function getActiveStage(checklist) {
   return 0;
 }
 
-function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, onSuggestMeeting, onSendWelcomeEmail, onScheduleCall }) {
+function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, onSuggestMeeting }) {
   const strategyMeetingDate = checklist?.strategy_meeting_date
     ? new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
     : null;
   const [expanded, setExpanded] = useState(false);
   const [suggestMode, setSuggestMode] = useState(false);
   const [suggestedTime, setSuggestedTime] = useState("");
+  const [showEmailComposer, setShowEmailComposer] = useState(false);
+  const [showCallScheduler, setShowCallScheduler] = useState(false);
   const progress = getProgress(checklist);
   const activeStageIdx = getActiveStage(checklist);
 
@@ -132,8 +135,10 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
                   <div className="space-y-2">
                     {stage.items.map((item) => {
                       const done = checklist?.[item.key] === true;
-                      const showWelcomeEmailAction = item.key === "welcome_email_sent" && !done;
-                      const showScheduleCallAction = item.key === "welcome_call_scheduled" && !done;
+                      const isEmailTask = item.key === "welcome_email_sent";
+                      const isCallTask = item.key === "welcome_call_scheduled";
+                      const showEmailAction = isEmailTask && !done;
+                      const showCallAction = isCallTask && !done;
                       
                       return (
                         <div key={item.key}>
@@ -155,37 +160,63 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
                               )}
                             </div>
                           </button>
-                          {showWelcomeEmailAction && (
-                            <div className="ml-6 mt-2 flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs gap-1"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onSendWelcomeEmail(client.id, checklist);
-                                }}
-                              >
-                                <Mail className="w-3 h-3" />
-                                Draft/Send Email
-                              </Button>
+                          {showEmailAction && (
+                            <div className="ml-6 mt-2">
+                              {!showEmailComposer ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs gap-1"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowEmailComposer(true);
+                                  }}
+                                >
+                                  <Mail className="w-3 h-3" />
+                                  Draft/Send Email
+                                </Button>
+                              ) : null}
                             </div>
                           )}
-                          {showScheduleCallAction && (
-                            <div className="ml-6 mt-2 flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs gap-1"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onScheduleCall(client.id, checklist);
-                                }}
-                              >
-                                <Phone className="w-3 h-3" />
-                                Schedule Call
-                              </Button>
+                          {showCallAction && (
+                            <div className="ml-6 mt-2">
+                              {!showCallScheduler ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs gap-1"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowCallScheduler(true);
+                                  }}
+                                >
+                                  <Phone className="w-3 h-3" />
+                                  Schedule Call
+                                </Button>
+                              ) : null}
                             </div>
+                          )}
+                          {showEmailAction && showEmailComposer && (
+                            <EmailComposer
+                              client={client}
+                              checklistId={checklist?.id}
+                              onSent={() => {
+                                setShowEmailComposer(false);
+                                onToggle(client.id, checklist, item.key, true);
+                              }}
+                              onCancel={() => setShowEmailComposer(false)}
+                            />
+                          )}
+                          {showCallAction && showCallScheduler && (
+                            <CallScheduler
+                              client={client}
+                              checklistId={checklist?.id}
+                              onScheduled={() => {
+                                setShowCallScheduler(false);
+                                onToggle(client.id, checklist, item.key, true);
+                              }}
+                              onCancel={() => setShowCallScheduler(false)}
+                            />
                           )}
                         </div>
                       );
@@ -338,49 +369,7 @@ export default function Onboarding() {
     }
   };
 
-  const handleSendWelcomeEmail = async (clientId, checklist) => {
-    try {
-      const client = clients.find(c => c.id === clientId);
-      if (!client) return;
-      
-      await base44.integrations.Core.SendEmail({
-        to: client.contact_email,
-        subject: `Welcome to Local Web Connect - ${client.business_name}`,
-        body: `Hi ${client.contact_name || 'there'},\n\nWelcome to Local Web Connect! We're excited to work with you.\n\nYour client portal is ready for you to access. You can log in to:\n- Track your projects\n- View invoices and payments\n- Complete your onboarding checklist\n- Submit support tickets\n\nIf you have any questions, please don't hesitate to reach out.\n\nBest regards,\nLocal Web Connect Team`,
-      });
-      
-      if (checklist) {
-        await base44.entities.OnboardingChecklist.update(checklist.id, { welcome_email_sent: true });
-      } else {
-        await base44.entities.OnboardingChecklist.create({ client_id: clientId, welcome_email_sent: true });
-      }
-      queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
-    } catch (error) {
-      console.error('Error sending welcome email:', error);
-    }
-  };
 
-  const handleScheduleCall = async (clientId, checklist) => {
-    try {
-      const client = clients.find(c => c.id === clientId);
-      if (!client) return;
-      
-      // Open email client with pre-filled message
-      const subject = encodeURIComponent('Schedule Welcome Call - ' + client.business_name);
-      const body = encodeURIComponent(`Hi ${client.contact_name || 'there'},\n\nI'd like to schedule our welcome/kickoff call. Please let me know your availability.\n\nBest regards,\nLocal Web Connect Team`);
-      
-      window.open(`mailto:${client.contact_email}?subject=${subject}&body=${body}`);
-      
-      if (checklist) {
-        await base44.entities.OnboardingChecklist.update(checklist.id, { welcome_call_scheduled: true });
-      } else {
-        await base44.entities.OnboardingChecklist.create({ client_id: clientId, welcome_call_scheduled: true });
-      }
-      queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
-    } catch (error) {
-      console.error('Error scheduling call:', error);
-    }
-  };
 
   // Show only onboarding-relevant clients (not churned)
   const activeClients = clients.filter((c) => c.status !== "Churned");
@@ -457,8 +446,6 @@ export default function Onboarding() {
                     onToggle={handleToggle}
                     onConfirmMeeting={handleConfirmMeeting}
                     onSuggestMeeting={handleSuggestMeeting}
-                    onSendWelcomeEmail={handleSendWelcomeEmail}
-                    onScheduleCall={handleScheduleCall}
                   />
                 );
               })

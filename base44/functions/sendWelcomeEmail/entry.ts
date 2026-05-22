@@ -9,10 +9,33 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { checklistId, to, subject, body } = await req.json();
+    const { clientId, checklistId, customSubject, customBody } = await req.json();
+
+    // Get client info
+    const client = await base44.entities.Client.get(clientId);
+    if (!client) {
+      return Response.json({ error: 'Client not found' }, { status: 404 });
+    }
+
+    const to = client.contact_email;
+    const subject = customSubject || `Welcome to Local Web Connect - ${client.business_name}`;
+    const body = customBody || `Hi ${client.contact_name || 'there'},
+
+Welcome to Local Web Connect! We're excited to work with you.
+
+Your client portal is ready for you to access. You can log in to:
+- Track your projects
+- View invoices and payments
+- Complete your onboarding checklist
+- Submit support tickets
+
+If you have any questions, please don't hesitate to reach out.
+
+Best regards,
+Local Web Connect Team`;
 
     // Validate input
-    if (!checklistId || !to || !subject || !body) {
+    if (!to || !subject || !body) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 

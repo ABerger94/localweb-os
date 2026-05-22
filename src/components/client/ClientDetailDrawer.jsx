@@ -6,10 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle, Globe, Target, Users, Palette, FileText, Mail, Phone, Pencil } from "lucide-react";
 import ClientEditModal from "@/components/client/ClientEditModal.jsx";
-import WelcomeCallScheduler from "@/components/client/WelcomeCallScheduler.jsx";
-import SendEmailModal from "@/components/client/SendEmailModal.jsx";
-import InlineEmailComposer from "@/components/client/InlineEmailComposer.jsx";
-import InlineCallScheduler from "@/components/client/InlineCallScheduler.jsx";
+import { EmailComposer, CallScheduler } from "@/components/client/ClientActionComponents.jsx";
 
 function Section({ title, icon: SectionIcon, children }) {
   return (
@@ -34,9 +31,7 @@ function InfoRow({ label, value }) {
 }
 
 export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
-  const [callModalOpen, setCallModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [showInlineEmail, setShowInlineEmail] = useState(false);
   const [showInlineCall, setShowInlineCall] = useState(false);
 
@@ -68,50 +63,30 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
     {
       key: "welcome_email_sent",
       label: "Welcome email sent",
-      action: checklist && (
-        <>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setShowInlineEmail(!showInlineEmail); }}
-            className="hidden sm:inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <Mail className="w-3 h-3 mr-1" />
-            {checklist.welcome_email_sent ? "Sent" : "Draft Email"}
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setEmailModalOpen(true); }}
-            className="sm:hidden inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <Mail className="w-3 h-3 mr-1" />
-            {checklist.welcome_email_sent ? "Sent" : "Draft Email"}
-          </button>
-        </>
+      action: checklist && !checklist.welcome_email_sent && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setShowInlineEmail(!showInlineEmail); }}
+          className="inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
+        >
+          <Mail className="w-3 h-3 mr-1" />
+          {showInlineEmail ? "Cancel" : "Draft Email"}
+        </button>
       ),
     },
     { key: "portal_access_granted", label: "Portal access granted" },
     {
       key: "welcome_call_scheduled",
       label: "Welcome call scheduled",
-      action: checklist && (
-        <>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setShowInlineCall(!showInlineCall); }}
-            className="hidden sm:inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <Phone className="w-3 h-3 mr-1" />
-            {checklist.welcome_call_scheduled ? "Scheduled" : "Schedule Call"}
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setCallModalOpen(true); }}
-            className="sm:hidden inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <Phone className="w-3 h-3 mr-1" />
-            {checklist.welcome_call_scheduled ? "Scheduled" : "Schedule Call"}
-          </button>
-        </>
+      action: checklist && !checklist.welcome_call_scheduled && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setShowInlineCall(!showInlineCall); }}
+          className="inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
+        >
+          <Phone className="w-3 h-3 mr-1" />
+          {showInlineCall ? "Cancel" : "Schedule Call"}
+        </button>
       ),
     },
     { key: "brand_assets_collected", label: "Brand assets collected" },
@@ -182,7 +157,7 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
                   </div>
                 ))}
                 {showInlineEmail && (
-                  <InlineEmailComposer 
+                  <EmailComposer 
                     client={client}
                     checklistId={checklist?.id}
                     onSent={() => { setShowInlineEmail(false); }}
@@ -190,7 +165,7 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
                   />
                 )}
                 {showInlineCall && (
-                  <InlineCallScheduler 
+                  <CallScheduler 
                     client={client}
                     checklistId={checklist?.id}
                     onScheduled={() => { setShowInlineCall(false); }}
@@ -262,20 +237,6 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
           </div>
         </SheetContent>
       </Sheet>
-
-      <WelcomeCallScheduler
-        open={callModalOpen}
-        onClose={() => setCallModalOpen(false)}
-        client={client}
-        checklistId={checklist?.id}
-      />
-
-      <SendEmailModal
-        open={emailModalOpen}
-        onClose={() => setEmailModalOpen(false)}
-        client={client}
-        checklistId={checklist?.id}
-      />
 
       <ClientEditModal
         open={editModalOpen}
