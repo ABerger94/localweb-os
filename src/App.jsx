@@ -19,6 +19,7 @@ import ClientPortalInvoices from '@/pages/ClientPortalInvoices';
 import Onboarding from '@/pages/Onboarding';
 import ClientOnboarding from '@/pages/ClientOnboarding';
 import ClientPortalSupport from '@/pages/ClientPortalSupport';
+import ClientPortalRetainers from '@/pages/ClientPortalRetainers';
 import SupportTickets from '@/pages/SupportTickets';
 
 
@@ -54,6 +55,7 @@ const AuthenticatedApp = () => {
         <Route path="/client-portal/projects" element={<ClientPortalProjects />} />
         <Route path="/client-portal/invoices" element={<ClientPortalInvoices />} />
         <Route path="/client-portal/onboarding" element={<ClientOnboarding />} />
+        <Route path="/client-portal/retainers" element={<ClientPortalRetainers />} />
         <Route path="/client-portal/support" element={<ClientPortalSupport />} />
         <Route path="*" element={<Navigate to="/client-portal" replace />} />
       </Routes>
@@ -77,6 +79,7 @@ const AuthenticatedApp = () => {
       <Route path="/client-portal" element={<ClientPortal />} />
       <Route path="/client-portal/projects" element={<ClientPortalProjects />} />
       <Route path="/client-portal/invoices" element={<ClientPortalInvoices />} />
+      <Route path="/client-portal/retainers" element={<ClientPortalRetainers />} />
       
       <Route path="*" element={<PageNotFound />} />
     </Routes>
