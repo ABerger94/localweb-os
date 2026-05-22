@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, Users, Zap, CalendarCheck, CalendarX } from "lucide-react";
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, Users, Zap, CalendarCheck, CalendarX, Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigationItems = [
@@ -81,7 +81,7 @@ function getActiveStage(checklist) {
   return 0;
 }
 
-function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, onSuggestMeeting }) {
+function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, onSuggestMeeting, onSendWelcomeEmail, onScheduleCall }) {
   const strategyMeetingDate = checklist?.strategy_meeting_date
     ? new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
     : null;
@@ -132,26 +132,62 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
                   <div className="space-y-2">
                     {stage.items.map((item) => {
                       const done = checklist?.[item.key] === true;
+                      const showWelcomeEmailAction = item.key === "welcome_email_sent" && !done;
+                      const showScheduleCallAction = item.key === "welcome_call_scheduled" && !done;
+                      
                       return (
-                        <button
-                          key={item.key}
-                          onClick={(e) => { e.stopPropagation(); onToggle(client.id, checklist, item.key, !done); }}
-                          className="flex items-start gap-2 w-full text-left group"
-                        >
-                          {done ? (
-                            <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-                          ) : (
-                            <Circle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0 group-hover:text-primary transition-colors" />
-                          )}
-                          <div className="flex flex-col gap-0.5">
-                            <span className={cn("text-xs leading-tight", done ? "line-through text-muted-foreground" : "text-foreground")}>
-                              {item.label}
-                            </span>
-                            {item.key === "strategy_meeting_held" && strategyMeetingDate && !done && (
-                              <span className="text-xs text-primary font-medium">{strategyMeetingDate}</span>
+                        <div key={item.key}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onToggle(client.id, checklist, item.key, !done); }}
+                            className="flex items-start gap-2 w-full text-left group"
+                          >
+                            {done ? (
+                              <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+                            ) : (
+                              <Circle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0 group-hover:text-primary transition-colors" />
                             )}
-                          </div>
-                        </button>
+                            <div className="flex flex-col gap-0.5">
+                              <span className={cn("text-xs leading-tight", done ? "line-through text-muted-foreground" : "text-foreground")}>
+                                {item.label}
+                              </span>
+                              {item.key === "strategy_meeting_held" && strategyMeetingDate && !done && (
+                                <span className="text-xs text-primary font-medium">{strategyMeetingDate}</span>
+                              )}
+                            </div>
+                          </button>
+                          {showWelcomeEmailAction && (
+                            <div className="ml-6 mt-2 flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs gap-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onSendWelcomeEmail(client.id, checklist);
+                                }}
+                              >
+                                <Mail className="w-3 h-3" />
+                                Draft/Send Email
+                              </Button>
+                            </div>
+                          )}
+                          {showScheduleCallAction && (
+                            <div className="ml-6 mt-2 flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs gap-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onScheduleCall(client.id, checklist);
+                                }}
+                              >
+                                <Phone className="w-3 h-3" />
+                                Schedule Call
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                     {/* Meeting confirmation UI — show when a time has been requested but not yet confirmed */}
@@ -302,6 +338,50 @@ export default function Onboarding() {
     }
   };
 
+  const handleSendWelcomeEmail = async (clientId, checklist) => {
+    try {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+      
+      await base44.integrations.Core.SendEmail({
+        to: client.contact_email,
+        subject: `Welcome to Local Web Connect - ${client.business_name}`,
+        body: `Hi ${client.contact_name || 'there'},\n\nWelcome to Local Web Connect! We're excited to work with you.\n\nYour client portal is ready for you to access. You can log in to:\n- Track your projects\n- View invoices and payments\n- Complete your onboarding checklist\n- Submit support tickets\n\nIf you have any questions, please don't hesitate to reach out.\n\nBest regards,\nLocal Web Connect Team`,
+      });
+      
+      if (checklist) {
+        await base44.entities.OnboardingChecklist.update(checklist.id, { welcome_email_sent: true });
+      } else {
+        await base44.entities.OnboardingChecklist.create({ client_id: clientId, welcome_email_sent: true });
+      }
+      queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+    }
+  };
+
+  const handleScheduleCall = async (clientId, checklist) => {
+    try {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+      
+      // Open email client with pre-filled message
+      const subject = encodeURIComponent('Schedule Welcome Call - ' + client.business_name);
+      const body = encodeURIComponent(`Hi ${client.contact_name || 'there'},\n\nI'd like to schedule our welcome/kickoff call. Please let me know your availability.\n\nBest regards,\nLocal Web Connect Team`);
+      
+      window.open(`mailto:${client.contact_email}?subject=${subject}&body=${body}`);
+      
+      if (checklist) {
+        await base44.entities.OnboardingChecklist.update(checklist.id, { welcome_call_scheduled: true });
+      } else {
+        await base44.entities.OnboardingChecklist.create({ client_id: clientId, welcome_call_scheduled: true });
+      }
+      queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
+    } catch (error) {
+      console.error('Error scheduling call:', error);
+    }
+  };
+
   // Show only onboarding-relevant clients (not churned)
   const activeClients = clients.filter((c) => c.status !== "Churned");
 
@@ -377,6 +457,8 @@ export default function Onboarding() {
                     onToggle={handleToggle}
                     onConfirmMeeting={handleConfirmMeeting}
                     onSuggestMeeting={handleSuggestMeeting}
+                    onSendWelcomeEmail={handleSendWelcomeEmail}
+                    onScheduleCall={handleScheduleCall}
                   />
                 );
               })
