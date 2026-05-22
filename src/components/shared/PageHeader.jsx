@@ -12,7 +12,7 @@ export default function PageHeader({
   className,
 }) {
   return (
-    <div className={cn("mb-6", className)}>
+    <div className={cn("mb-6 pt-10 lg:pt-0", className)}>
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
