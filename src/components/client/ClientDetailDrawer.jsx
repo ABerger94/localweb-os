@@ -106,7 +106,7 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
   return (
     <>
       <Sheet open={open} onOpenChange={onClose}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()}>
           <SheetHeader className="mb-6">
             <div className="flex items-start justify-between gap-2">
               <SheetTitle className="text-xl">{client.business_name}</SheetTitle>
