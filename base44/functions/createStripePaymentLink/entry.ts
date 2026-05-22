@@ -33,7 +33,6 @@ Deno.serve(async (req) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to cents
       currency: 'usd',
-      payment_method_types: ['card'],
       metadata: {
         invoiceId,
         type: 'invoice_payment',
