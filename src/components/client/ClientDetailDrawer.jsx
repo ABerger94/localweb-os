@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle, Globe, Target, Users, Palette, FileText, Mail, Phone, Pencil } from "lucide-react";
 import ClientEditModal from "@/components/client/ClientEditModal.jsx";
+import WelcomeCallScheduler from "@/components/client/WelcomeCallScheduler.jsx";
 
 function Section({ title, icon: SectionIcon, children }) {
   return (
@@ -30,18 +31,13 @@ function InfoRow({ label, value }) {
 }
 
 export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
+  const [callModalOpen, setCallModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
   const handleDraftEmail = () => {
     const subject = encodeURIComponent(`Welcome to Local Web Connect, ${client?.business_name || ""}!`);
     const body = encodeURIComponent(
       `Hi ${client?.contact_name || "there"},\n\nWelcome aboard! We're thrilled to have ${client?.business_name || "your business"} as a client.\n\nWe'll be in touch shortly to get started.\n\nBest regards,\nLocal Web Connect`
-    );
-    window.open(`mailto:${client?.contact_email}?subject=${subject}&body=${body}`, '_blank');
-  };
-
-  const handleScheduleCall = () => {
-    const subject = encodeURIComponent("Welcome Call - Local Web Connect");
-    const body = encodeURIComponent(
-      `Hi ${client?.contact_name || "there"},\n\nI'd like to schedule a welcome call with you. Please let me know your availability.\n\nBest regards,\nLocal Web Connect`
     );
     window.open(`mailto:${client?.contact_email}?subject=${subject}&body=${body}`, '_blank');
   };
@@ -95,7 +91,7 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
           size="sm" 
           variant={checklist.welcome_call_scheduled ? "ghost" : "outline"} 
           className="h-5 text-xs px-2 py-0 ml-auto" 
-          onClick={handleScheduleCall}
+          onClick={() => setCallModalOpen(true)}
         >
           <Phone className="w-3 h-3 mr-1" /> 
           {checklist.welcome_call_scheduled ? "Scheduled" : "Schedule Call"}
@@ -123,7 +119,7 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
             <div className="flex items-start justify-between gap-2">
               <SheetTitle className="text-xl">{client.business_name}</SheetTitle>
               {onEdit && (
-                <Button size="sm" variant="outline" className="shrink-0" onClick={() => onEdit(client)}>
+                <Button size="sm" variant="outline" className="shrink-0" onClick={() => { setEditModalOpen(true); onClose(); }}>
                   <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
                 </Button>
               )}
@@ -230,6 +226,18 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
         </SheetContent>
       </Sheet>
 
+      <WelcomeCallScheduler
+        open={callModalOpen}
+        onClose={() => setCallModalOpen(false)}
+        client={client}
+        checklistId={checklist?.id}
+      />
+
+      <ClientEditModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        client={client}
+      />
     </>
   );
 }
