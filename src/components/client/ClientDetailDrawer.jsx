@@ -65,15 +65,14 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
       key: "welcome_email_sent",
       label: "Welcome email sent",
       action: checklist && (
-        <Button 
-          size="sm" 
-          variant={checklist.welcome_email_sent ? "ghost" : "outline"} 
-          className="h-5 text-xs px-2 py-0 ml-auto" 
-          onClick={() => setEmailModalOpen(true)}
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setEmailModalOpen(true); }}
+          className="inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
         >
-          <Mail className="w-3 h-3 mr-1" /> 
+          <Mail className="w-3 h-3 mr-1" />
           {checklist.welcome_email_sent ? "Sent" : "Draft Email"}
-        </Button>
+        </button>
       ),
     },
     { key: "portal_access_granted", label: "Portal access granted" },
@@ -81,15 +80,14 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
       key: "welcome_call_scheduled",
       label: "Welcome call scheduled",
       action: checklist && (
-        <Button 
-          size="sm" 
-          variant={checklist.welcome_call_scheduled ? "ghost" : "outline"} 
-          className="h-5 text-xs px-2 py-0 ml-auto" 
-          onClick={() => setCallModalOpen(true)}
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setCallModalOpen(true); }}
+          className="inline-flex items-center justify-center h-5 text-xs px-2 py-0 ml-auto rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors"
         >
-          <Phone className="w-3 h-3 mr-1" /> 
+          <Phone className="w-3 h-3 mr-1" />
           {checklist.welcome_call_scheduled ? "Scheduled" : "Schedule Call"}
-        </Button>
+        </button>
       ),
     },
     { key: "brand_assets_collected", label: "Brand assets collected" },
