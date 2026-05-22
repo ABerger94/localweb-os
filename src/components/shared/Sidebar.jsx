@@ -45,7 +45,7 @@ export default function Sidebar({ items, isClientPortal = false }) {
         {/* Header */}
         <div className="p-5 border-b border-sidebar-border">
           <h2 className="text-lg font-bold text-sidebar-foreground">
-            {isClientPortal ? "Client Portal" : "LocalFlow"}
+            {isClientPortal ? "Client Portal" : "Local Web Connect"}
           </h2>
         </div>
 
@@ -76,7 +76,7 @@ export default function Sidebar({ items, isClientPortal = false }) {
 
         {/* Footer */}
         <div className="p-4 border-t border-sidebar-border space-y-2">
-          <p className="text-xs text-sidebar-foreground/60">LocalFlow Pro</p>
+          <p className="text-xs text-sidebar-foreground/60">Local Web Connect Pro</p>
           <button
             onClick={() => base44.auth.logout()}
             className="flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors w-full"
