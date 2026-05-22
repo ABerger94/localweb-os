@@ -226,27 +226,50 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
                     {/* Meeting confirmation UI — show when a time has been requested but not yet confirmed */}
                     {stage.id === "strategy" && checklist?.strategy_meeting_date && !checklist?.strategy_meeting_confirmed && (
                       <div onClick={(e) => e.stopPropagation()} className="mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-blue-800">
-                            {checklist.strategy_meeting_proposed_by === 'client' ? 'Client proposed:' : 'Agency proposed:'}
-                          </span>
-                          {!suggestMode && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">
-                              Pending confirmation
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-blue-800">
+                              {checklist.strategy_meeting_proposed_by === 'client' ? 'Client proposed:' : 'You proposed:'}
                             </span>
-                          )}
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">
+                              {checklist.strategy_meeting_proposed_by === 'client' ? 'Awaiting your confirmation' : 'Awaiting client confirmation'}
+                            </span>
+                          </div>
                         </div>
                         <p className="text-sm font-medium text-blue-900">{strategyMeetingDate}</p>
+                        
                         {checklist.strategy_meeting_proposed_by === 'client' && !suggestMode && (
-                          <div className="flex gap-1.5">
-                            <Button
-                              size="sm"
-                              className="h-7 text-xs px-2 gap-1"
-                              onClick={() => onConfirmMeeting(client.id, checklist)}
-                            >
-                              <CalendarCheck className="w-3 h-3" />
-                              Confirm Time
-                            </Button>
+                          <div className="space-y-2">
+                            <p className="text-xs text-blue-700">
+                              Client is waiting for you to confirm this time.
+                            </p>
+                            <div className="flex gap-1.5">
+                              <Button
+                                size="sm"
+                                className="h-7 text-xs px-2 gap-1 bg-green-600 hover:bg-green-700"
+                                onClick={() => onConfirmMeeting(client.id, checklist)}
+                              >
+                                <CalendarCheck className="w-3 h-3" />
+                                Confirm This Time
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs px-2 gap-1"
+                                onClick={() => setSuggestMode(true)}
+                              >
+                                <CalendarX className="w-3 h-3" />
+                                Suggest Different Time
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {checklist.strategy_meeting_proposed_by === 'agency' && !suggestMode && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-blue-700">
+                              Waiting for client to confirm. They can also suggest an alternative time.
+                            </p>
                             <Button
                               size="sm"
                               variant="outline"
@@ -254,31 +277,20 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
                               onClick={() => setSuggestMode(true)}
                             >
                               <CalendarX className="w-3 h-3" />
-                              Suggest New Time
+                              Propose Different Time
                             </Button>
                           </div>
                         )}
-                        {checklist.strategy_meeting_proposed_by === 'agency' && (
-                          <p className="text-xs text-blue-700 italic">
-                            Waiting for client confirmation...
-                          </p>
-                        )}
-                        {!suggestMode && checklist.strategy_meeting_proposed_by === 'client' && (
-                          <button
-                            onClick={() => setSuggestMode(true)}
-                            className="text-xs text-blue-700 hover:underline"
-                          >
-                            Can't make this time? Suggest alternative
-                          </button>
-                        )}
+                        
                         {suggestMode && (
                           <div className="space-y-2 mt-2 pt-2 border-t border-blue-200">
+                            <p className="text-xs font-medium text-blue-800">Propose alternative time:</p>
                             <Input
                               type="datetime-local"
                               value={suggestedTime}
                               onChange={(e) => setSuggestedTime(e.target.value)}
                               className="h-8 text-sm"
-                              placeholder="Select alternative time"
+                              min={new Date().toISOString().slice(0, 16)}
                             />
                             <div className="flex gap-1.5">
                               <Button
