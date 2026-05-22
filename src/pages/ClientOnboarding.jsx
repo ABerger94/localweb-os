@@ -763,22 +763,23 @@ export default function ClientOnboarding() {
                                         </p>
                                         <div className="flex flex-col sm:flex-row gap-2">
                                           <Button
-                                            size="sm"
-                                            className="flex-1 h-9 text-sm bg-green-600 hover:bg-green-700"
-                                            onClick={async () => {
-                                              try {
-                                                await base44.functions.invoke('confirmMeetingTime', {
-                                                  checklistId: checklist.id,
-                                                  confirmedBy: 'client',
-                                                });
-                                                queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
-                                              } catch (error) {
-                                                console.error('Error confirming:', error);
-                                                alert('Failed to confirm. Please try again.');
-                                              }
-                                            }}
+                                           size="sm"
+                                           className="flex-1 h-9 text-sm bg-green-600 hover:bg-green-700"
+                                           onClick={async () => {
+                                             try {
+                                               await base44.functions.invoke('confirmMeetingTime', {
+                                                 checklistId: checklist.id,
+                                                 confirmedBy: 'client',
+                                                 meetingType: 'strategy',
+                                               });
+                                               queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
+                                             } catch (error) {
+                                               console.error('Error confirming:', error);
+                                               alert('Failed to confirm. Please try again.');
+                                             }
+                                           }}
                                           >
-                                            ✓ Confirm This Time
+                                           ✓ Confirm This Time
                                           </Button>
                                           <Button
                                             size="sm"

@@ -16,8 +16,15 @@ Deno.serve(async (req) => {
     }
 
     // Get checklist and client
-    const checklist = await base44.entities.OnboardingChecklist.get(checklistId);
-    const client = await base44.entities.Client.get(checklist.client_id);
+    const checklists = await base44.entities.OnboardingChecklist.filter({ id: checklistId });
+    const checklist = checklists[0];
+    
+    if (!checklist) {
+      return Response.json({ error: 'Checklist not found' }, { status: 404 });
+    }
+    
+    const clients = await base44.entities.Client.filter({ id: checklist.client_id });
+    const client = clients[0];
 
     // Determine which fields to use based on meeting type
     const historyField = meetingType === 'welcome' ? 'welcome_call_history' : 'meeting_proposal_history';
