@@ -1,38 +1,40 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 
 export default function ScheduleCallModal({ open, onClose, client, checklistId }) {
   const queryClient = useQueryClient();
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    date: "",
-    time: "",
-    notes: "",
-    notify: true,
+
+  const updateChecklist = useMutation({
+    mutationFn: (data) => base44.entities.OnboardingChecklist.update(checklistId, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] }),
   });
 
-  const handleSave = async () => {
+  const handleSchedule = async () => {
     setSaving(true);
-    if (form.notify && client?.contact_email) {
-      const dateStr = form.date && form.time ? `${form.date} at ${form.time}` : form.date || form.time || "TBD";
-      await base44.integrations.Core.SendEmail({
-        to: client.contact_email,
-        subject: `Welcome Call Scheduled – ${client.business_name}`,
-        body: `Hi ${client.contact_name || "there"},\n\nYour welcome call has been scheduled for ${dateStr}.\n\n${form.notes ? `Notes: ${form.notes}\n\n` : ""}We look forward to speaking with you!\n\nBest,\nLocal Web Connect`,
-      });
+    try {
+      if (client?.contact_email && date && time) {
+        await base44.integrations.Core.SendEmail({
+          to: client.contact_email,
+          subject: "Your Welcome Call is Scheduled",
+          body: `Hi ${client?.contact_name || "there"},\n\nYour welcome call has been scheduled for ${date} at ${time}.\n\n${notes ? `Notes: ${notes}\n\n` : ""}We look forward to speaking with you!\n\nBest regards,\nLocal Web Connect`,
+        });
+      }
+      if (checklistId) {
+        await updateChecklist.mutateAsync({ welcome_call_scheduled: true });
+      }
+      onClose();
+    } finally {
+      setSaving(false);
     }
-    if (checklistId) {
-      await base44.entities.OnboardingChecklist.update(checklistId, { welcome_call_scheduled: true });
-      queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] });
-    }
-    setSaving(false);
-    onClose();
   };
 
   return (
@@ -41,44 +43,41 @@ export default function ScheduleCallModal({ open, onClose, client, checklistId }
         <DialogHeader>
           <DialogTitle>Schedule Welcome Call</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 mt-2">
+        <div className="space-y-4 py-2">
+          <div>
+            <Label>Client</Label>
+            <Input value={client?.business_name || ""} disabled />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Date</Label>
-              <Input type="date" className="mt-1" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div>
               <Label>Time</Label>
-              <Input type="time" className="mt-1" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} />
+              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </div>
           </div>
           <div>
             <Label>Notes (optional)</Label>
-            <Textarea
-              className="mt-1"
-              placeholder="Agenda or call details..."
-              value={form.notes}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            <Input
+              placeholder="e.g. Google Meet link, agenda..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="notify"
-              checked={form.notify}
-              onChange={(e) => setForm({ ...form, notify: e.target.checked })}
-            />
-            <label htmlFor="notify" className="text-sm text-muted-foreground">
-              Send confirmation email to {client?.contact_email}
-            </label>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Confirm & Schedule"}
-            </Button>
-          </div>
+          {client?.contact_email && date && time && (
+            <p className="text-xs text-muted-foreground">
+              A confirmation email will be sent to {client.contact_email}.
+            </p>
+          )}
         </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSchedule} disabled={saving || !date || !time}>
+            {saving ? "Scheduling..." : "Confirm & Schedule"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
