@@ -32,6 +32,7 @@ const CLIENT_STAGES = [
     description: "Get set up and ready to start",
     items: [
       { key: "portal_access_granted", label: "Log into your client portal", autoComplete: true },
+      { key: "welcome_call_scheduled", label: "Schedule your welcome/kickoff call", form: "welcomeCall" },
     ],
   },
   {
@@ -150,6 +151,55 @@ export default function ClientOnboarding() {
   const [meetingNotes, setMeetingNotes] = useState("");
 
   const [submittingMeeting, setSubmittingMeeting] = useState(false);
+
+  const handleWelcomeCallSubmit = async (e) => {
+    e.preventDefault();
+    if (!meetingDateTime) return;
+    setSubmittingMeeting(true);
+    try {
+      // Use backend function to propose meeting time with email notification
+      if (checklist) {
+        await base44.functions.invoke('proposeMeetingTime', {
+          checklistId: checklist.id,
+          datetime: meetingDateTime,
+          notes: meetingNotes,
+          proposedBy: 'client',
+          meetingType: 'welcome',
+        });
+      } else if (currentClient) {
+        // Create checklist first if it doesn't exist
+        const newChecklist = await base44.entities.OnboardingChecklist.create({
+          client_id: currentClient.id,
+          welcome_call_date: meetingDateTime,
+          welcome_call_proposed_by: 'client',
+          welcome_call_confirmed: false,
+          welcome_call_history: JSON.stringify([{
+            proposed_by: 'client',
+            datetime: meetingDateTime,
+            notes: meetingNotes,
+            confirmed: false,
+            timestamp: new Date().toISOString(),
+          }]),
+        });
+        await base44.functions.invoke('proposeMeetingTime', {
+          checklistId: newChecklist.id,
+          datetime: meetingDateTime,
+          notes: meetingNotes,
+          proposedBy: 'client',
+          meetingType: 'welcome',
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] });
+      setMeetingDateTime("");
+      setMeetingNotes("");
+      alert("Welcome call time proposed! The agency will review and confirm shortly.");
+    } catch (error) {
+      console.error('Error proposing welcome call:', error);
+      alert("Failed to propose welcome call time. Please try again.");
+    } finally {
+      setSubmittingMeeting(false);
+    }
+  };
 
   const handleStrategyMeetingSubmit = async (e) => {
     e.preventDefault();
@@ -408,6 +458,7 @@ export default function ClientOnboarding() {
                         if (item.form === "businessGoals") return formData.businessGoals;
                         if (item.form === "communicationChannel") return formData.communicationChannel;
                         if (item.form === "strategyMeeting") return meetingDateTime;
+                        if (item.form === "welcomeCall") return meetingDateTime;
                         return "";
                       };
 
@@ -474,6 +525,155 @@ export default function ClientOnboarding() {
                                   </div>
                                 )}
                               </div>
+                            ) : item.form === "welcomeCall" ? (
+                              checklist?.welcome_call_date && !checklist?.welcome_call_confirmed ? (
+                                <div className="mt-3 ml-8 p-3 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-xs font-medium text-blue-800">
+                                        {checklist.welcome_call_proposed_by === 'client' ? 'Your Request' : 'Agency Proposal'}
+                                      </p>
+                                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">
+                                        {checklist.welcome_call_proposed_by === 'client' ? 'Pending agency confirmation' : 'Awaiting your confirmation'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <p className="text-sm font-medium text-blue-900">
+                                    📅 {new Date(checklist.welcome_call_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                                  </p>
+                                  {checklist.welcome_call_proposed_by === 'client' ? (
+                                    <div className="space-y-2">
+                                      <p className="text-xs text-blue-700">
+                                        Your agency will review and confirm this time shortly. You'll receive an email confirmation.
+                                      </p>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 text-xs"
+                                        onClick={() => {
+                                          setMeetingDateTime('');
+                                          setMeetingNotes('');
+                                          const form = document.getElementById('welcome-call-form');
+                                          if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        }}
+                                      >
+                                        ↺ Suggest Different Time
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-3">
+                                      <div className="p-3 bg-white rounded border border-blue-200">
+                                        <p className="text-sm font-medium text-blue-900 mb-2">
+                                          Your agency has proposed this time. What would you like to do?
+                                        </p>
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                          <Button
+                                            size="sm"
+                                            className="flex-1 h-9 text-sm bg-green-600 hover:bg-green-700"
+                                            onClick={async () => {
+                                              try {
+                                                await base44.functions.invoke('confirmMeetingTime', {
+                                                  checklistId: checklist.id,
+                                                  confirmedBy: 'client',
+                                                  meetingType: 'welcome',
+                                                });
+                                                queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
+                                              } catch (error) {
+                                                console.error('Error confirming:', error);
+                                                alert('Failed to confirm. Please try again.');
+                                              }
+                                            }}
+                                          >
+                                            ✓ Confirm This Time
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="flex-1 h-9 text-sm"
+                                            onClick={() => {
+                                              setMeetingDateTime('');
+                                              setMeetingNotes('');
+                                              const form = document.getElementById('welcome-call-form');
+                                              if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                            }}
+                                          >
+                                            ↺ Suggest Different Time
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : checklist?.welcome_call_confirmed ? (
+                                <div className="mt-3 ml-8 p-3 rounded-lg bg-green-50 border border-green-200">
+                                  <p className="text-xs font-medium text-green-800">✓ Welcome Call Confirmed</p>
+                                  <p className="text-sm font-semibold text-green-900 mt-0.5">
+                                    📅 {new Date(checklist.welcome_call_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                                  </p>
+                                  <p className="text-xs text-green-700 mt-1">
+                                    You'll receive a calendar invitation via email.
+                                  </p>
+                                </div>
+                              ) : checklist?.welcome_call_proposed_by === 'client' && !checklist?.welcome_call_confirmed ? (
+                                <div className="mt-3 ml-8 p-3 rounded-lg bg-amber-50 border border-amber-200 space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-xs font-medium text-amber-800">Your Time Request</p>
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
+                                      Awaiting agency confirmation
+                                    </span>
+                                  </div>
+                                  <p className="text-sm font-semibold text-amber-900">
+                                    📅 {new Date(checklist.welcome_call_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                                  </p>
+                                  <p className="text-xs text-amber-700">
+                                    Your agency will review and confirm shortly. You'll receive an email notification.
+                                  </p>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 text-xs mt-2"
+                                    onClick={() => {
+                                      setMeetingDateTime('');
+                                      setMeetingNotes('');
+                                      const form = document.getElementById('welcome-call-form');
+                                      if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }}
+                                  >
+                                    ↺ Suggest Different Time
+                                  </Button>
+                                </div>
+                              ) : (
+                                <form id="welcome-call-form" onSubmit={handleWelcomeCallSubmit} className="mt-3 ml-8 space-y-3">
+                                  <div className="p-3 bg-muted/30 rounded-lg border mb-3">
+                                    <p className="text-sm font-medium mb-1">Propose a Welcome Call Time</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Suggest a date and time for your 30-minute welcome/kickoff call. We'll review and confirm within 24 hours.
+                                    </p>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Select Date & Time</Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={meetingDateTime}
+                                      onChange={(e) => setMeetingDateTime(e.target.value)}
+                                      min={new Date().toISOString().slice(0, 16)}
+                                      required
+                                      className="text-sm"
+                                    />
+                                    <Label className="text-sm font-medium mt-3">Additional Notes (Optional)</Label>
+                                    <Textarea
+                                      placeholder="Questions, topics, or preferred meeting format (phone, video call, etc.)"
+                                      value={meetingNotes}
+                                      onChange={(e) => setMeetingNotes(e.target.value)}
+                                      className="text-sm h-20"
+                                    />
+                                  </div>
+                                  <Button size="sm" type="submit" className="gap-2 w-full sm:w-auto" disabled={submittingMeeting}>
+                                    <CalendarClock className="w-4 h-4" />
+                                    {submittingMeeting ? "Submitting..." : "Submit Proposed Time"}
+                                  </Button>
+                                </form>
+                              )
                             ) : item.form === "retainerAgreement" ? (
                               <div className="mt-3 ml-8 space-y-3">
                                 {clientRetainer ? (
