@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -7,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 export default function NotificationBell({ notifications = [], onMarkAsRead }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   
   const unreadCount = notifications.filter(n => !n.read).length;
   const hasUnread = unreadCount > 0;
@@ -89,7 +91,13 @@ export default function NotificationBell({ notifications = [], onMarkAsRead }) {
                     ? "bg-muted/30 border-border" 
                     : "bg-background border-primary/30 hover:bg-muted/50"
                 )}
-                onClick={() => onMarkAsRead(notification.id)}
+                onClick={() => {
+                  onMarkAsRead(notification.id);
+                  if (notification.action_url) {
+                    navigate(notification.action_url);
+                    setOpen(false);
+                  }
+                }}
               >
                 <div className="flex items-start gap-2">
                   <span className="text-lg">{getIcon(notification.type)}</span>
