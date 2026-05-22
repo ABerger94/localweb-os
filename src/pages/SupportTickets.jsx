@@ -19,6 +19,7 @@ const navigationItems = [
   { label: "Retainers", href: "/retainers" },
   { label: "Support Tickets", href: "/support" },
   { label: "Designer", href: "/designer" },
+  { label: "QR Code", href: "/qr-code" },
 ];
 
 const STATUS_OPTIONS = ["Open", "In Progress", "Resolved", "Closed"];
