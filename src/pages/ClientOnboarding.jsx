@@ -194,20 +194,33 @@ export default function ClientOnboarding() {
     e.preventDefault();
     if (!formData.brandAssets.trim() && brandAssetFiles.length === 0) return;
     setUploadingAssets(true);
-    for (const file of brandAssetFiles) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      await base44.entities.DesignAsset.create({
-        client_id: currentClient.id,
-        asset_type: file.type.startsWith("image/") ? "image" : "image",
-        asset_name: file.name,
-        asset_value: file_url,
-        description: formData.brandAssets,
+    try {
+      // Upload all files and create DesignAsset records
+      const uploadPromises = brandAssetFiles.map(async (file) => {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        return base44.entities.DesignAsset.create({
+          client_id: currentClient.id,
+          asset_type: file.type.startsWith("image/") ? "image" : "image",
+          asset_name: file.name,
+          asset_value: file_url,
+          description: formData.brandAssets,
+        });
       });
+      
+      // Wait for all uploads to complete
+      await Promise.all(uploadPromises);
+      
+      // Mark task as complete and refresh UI
+      await mutation.mutateAsync({ key: "brand_assets_collected", value: true });
+      queryClient.invalidateQueries({ queryKey: ["design-assets"] });
+      setFormData(prev => ({ ...prev, brandAssets: "" }));
+      setBrandAssetFiles([]);
+    } catch (error) {
+      console.error("Asset upload failed:", error);
+      alert("Failed to upload assets. Please try again.");
+    } finally {
+      setUploadingAssets(false);
     }
-    setUploadingAssets(false);
-    await mutation.mutateAsync({ key: "brand_assets_collected", value: true });
-    setFormData(prev => ({ ...prev, brandAssets: "" }));
-    setBrandAssetFiles([]);
   };
 
   const handleBusinessGoalsSubmit = async (e) => {
