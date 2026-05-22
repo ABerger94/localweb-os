@@ -47,7 +47,7 @@ const PIPELINE_STAGES = [
     label: "Strategy & Planning",
     color: "bg-orange-100 text-orange-800 border-orange-300",
     items: [
-      { key: "strategy_meeting_held", label: "Hold strategy planning meeting" },
+      { key: "strategy_meeting_held", label: "Schedule strategy planning meeting" },
       { key: "project_plan_created", label: "Create project plan & scope document" },
       { key: "communication_channels_set", label: "Establish communication channels" },
     ],
