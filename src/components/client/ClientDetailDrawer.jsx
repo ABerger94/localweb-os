@@ -112,7 +112,7 @@ export default function ClientDetailDrawer({ client, open, onClose }) {
                 <InfoRow label="Phone" value={client.phone} />
                 <InfoRow label="Location" value={client.location} />
                 <InfoRow label="Address" value={client.address} />
-                <InfoRow label="Google Rating" value={client.google_rating ? `${client.google_rating} ★` : null} />
+                <InfoRow label="Google Rating" value={client.google_rating ? `${client.google_rating} stars` : null} />
                 <InfoRow label="Portal User Email" value={client.user_email} />
               </div>
             </Section>
