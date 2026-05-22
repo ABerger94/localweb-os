@@ -5,11 +5,12 @@ import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import ProjectModal from "@/components/projects/ProjectModal";
+import ProjectDetailDrawer from "@/components/projects/ProjectDetailDrawer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, ExternalLink, Eye } from "lucide-react";
 
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: null },
@@ -31,6 +32,8 @@ export default function Projects() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [modalOpen, setModalOpen] = useState(false);
   const [editProject, setEditProject] = useState(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const { data: projects = [] } = useQuery({
     queryKey: ["projects"],
@@ -59,6 +62,7 @@ export default function Projects() {
 
   const openNew = () => { setEditProject(null); setModalOpen(true); };
   const openEdit = (p) => { setEditProject(p); setModalOpen(true); };
+  const openDetail = (p) => { setSelectedProject(p); setDetailOpen(true); };
   const handleDelete = (id) => { if (confirm("Delete this project?")) deleteMutation.mutate(id); };
 
   // Auto-create retainer workflow
@@ -142,7 +146,7 @@ export default function Projects() {
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {filtered.map((project) => (
-                <Card key={project.id} className="p-4">
+                <Card key={project.id} className="p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => openDetail(project)}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -173,7 +177,7 @@ export default function Projects() {
                         </a>
                       )}
                     </div>
-                    <div className="flex gap-1 shrink-0">
+                    <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                       <Button
                         variant="outline"
                         size="sm"
@@ -205,6 +209,12 @@ export default function Projects() {
             clients={clients}
             open={modalOpen}
             onClose={() => setModalOpen(false)}
+          />
+
+          <ProjectDetailDrawer
+            project={selectedProject}
+            open={detailOpen}
+            onClose={() => setDetailOpen(false)}
           />
         </div>
       </div>

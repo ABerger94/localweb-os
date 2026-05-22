@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import RoadmapManager from "./RoadmapManager";
 
 const STATUSES = ["Not Started", "In Progress", "Review", "Approved", "Delivered"];
 
@@ -18,25 +20,37 @@ export default function ProjectModal({ project, clients, open, onClose }) {
     client_id: "",
     project_name: "",
     description: "",
+    scope_description: "",
     due_date: "",
     deliverable_url: "",
     status: "Not Started",
     feedback: "",
+    roadmap: [],
   });
 
   useEffect(() => {
     if (project) {
+      let roadmapData = [];
+      if (project.roadmap) {
+        try {
+          roadmapData = typeof project.roadmap === "string" ? JSON.parse(project.roadmap) : project.roadmap;
+        } catch {
+          roadmapData = [];
+        }
+      }
       setForm({
         client_id: project.client_id || "",
         project_name: project.project_name || "",
         description: project.description || "",
+        scope_description: project.scope_description || "",
         due_date: project.due_date || "",
         deliverable_url: project.deliverable_url || "",
         status: project.status || "Not Started",
         feedback: project.feedback || "",
+        roadmap: roadmapData,
       });
     } else {
-      setForm({ client_id: "", project_name: "", description: "", due_date: "", deliverable_url: "", status: "Not Started", feedback: "" });
+      setForm({ client_id: "", project_name: "", description: "", scope_description: "", due_date: "", deliverable_url: "", status: "Not Started", feedback: "", roadmap: [] });
     }
   }, [project, open]);
 
@@ -51,9 +65,17 @@ export default function ProjectModal({ project, clients, open, onClose }) {
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target?.value ?? e }));
 
+  const handleRoadmapChange = (updatedRoadmap) => {
+    setForm((f) => ({ ...f, roadmap: updatedRoadmap }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutation.mutate(form);
+    const submitData = {
+      ...form,
+      roadmap: JSON.stringify(form.roadmap),
+    };
+    mutation.mutate(submitData);
   };
 
   return (
@@ -78,12 +100,29 @@ export default function ProjectModal({ project, clients, open, onClose }) {
             <Input value={form.project_name} onChange={set("project_name")} required />
           </div>
 
-          <div className="space-y-1">
-            <Label>Description</Label>
-            <Textarea rows={3} value={form.description} onChange={set("description")} />
-          </div>
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
+            </TabsList>
 
-          <div className="grid grid-cols-2 gap-4">
+            <TabsContent value="details" className="space-y-4 mt-4">
+              <div className="space-y-1">
+                <Label>Description</Label>
+                <Textarea rows={3} value={form.description} onChange={set("description")} />
+              </div>
+
+              <div className="space-y-1">
+                <Label>Scope Description</Label>
+                <Textarea
+                  rows={4}
+                  value={form.scope_description}
+                  onChange={set("scope_description")}
+                  placeholder="Detailed project scope, deliverables, and requirements..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label>Status</Label>
               <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
@@ -104,12 +143,18 @@ export default function ProjectModal({ project, clients, open, onClose }) {
             <Input type="url" value={form.deliverable_url} onChange={set("deliverable_url")} placeholder="https://..." />
           </div>
 
-          <div className="space-y-1">
-            <Label>Client Feedback / Notes</Label>
-            <Textarea rows={3} value={form.feedback} onChange={set("feedback")} />
-          </div>
+              <div className="space-y-1">
+                <Label>Client Feedback / Notes</Label>
+                <Textarea rows={3} value={form.feedback} onChange={set("feedback")} />
+              </div>
+            </TabsContent>
 
-          <div className="flex justify-end gap-2 pt-2">
+            <TabsContent value="roadmap" className="mt-4">
+              <RoadmapManager roadmap={form.roadmap} onChange={handleRoadmapChange} />
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Saving..." : isNew ? "Create Project" : "Save Changes"}
