@@ -15,7 +15,7 @@ export default function Sidebar({ items, isClientPortal = false }) {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-[60] lg:hidden"
+        className="fixed top-4 left-4 z-[100] lg:hidden"
         onClick={() => setMobileOpen(!mobileOpen)}
         aria-label="Toggle menu"
       >
@@ -29,7 +29,7 @@ export default function Sidebar({ items, isClientPortal = false }) {
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-[55] lg:hidden"
+          className="fixed inset-0 bg-black/50 z-[95] lg:hidden"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />
@@ -37,7 +37,7 @@ export default function Sidebar({ items, isClientPortal = false }) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-[50] w-64 bg-sidebar border-r border-sidebar-border",
+        "fixed inset-y-0 left-0 z-[90] w-64 bg-sidebar border-r border-sidebar-border",
         "flex flex-col transition-transform duration-300",
         "lg:translate-x-0",
         mobileOpen ? "translate-x-0" : "-translate-x-full"
