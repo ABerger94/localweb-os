@@ -58,6 +58,7 @@ export default function ClientPortalInvoices() {
   const handleInitiatePayment = async (invoice) => {
     try {
       setLoadingPayment(true);
+      console.log("Initiating payment for invoice:", invoice.id);
       const res = await base44.functions.invoke("createStripePaymentLink", {
         invoiceId: invoice.id,
         amount: invoice.amount,
@@ -65,10 +66,16 @@ export default function ClientPortalInvoices() {
         clientName: currentClient.business_name,
       });
       
+      console.log("Payment response:", res.data);
+      
       if (res.data?.clientSecret && res.data?.publishableKey) {
+        console.log("Setting up payment modal");
         setClientSecret(res.data.clientSecret);
         setStripePromise(loadStripe(res.data.publishableKey));
         setPayingInvoice(invoice);
+      } else {
+        console.error("Missing clientSecret or publishableKey");
+        alert("Payment setup failed. Please try again.");
       }
     } catch (error) {
       console.error("Payment error:", error);
