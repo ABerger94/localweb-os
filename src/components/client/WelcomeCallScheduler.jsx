@@ -84,7 +84,7 @@ export default function WelcomeCallScheduler({ open, onClose, client, checklistI
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg" onOpenAutoFocus={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Schedule Welcome Call</DialogTitle>
         </DialogHeader>
