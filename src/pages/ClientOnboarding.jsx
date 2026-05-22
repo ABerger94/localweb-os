@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, Lock, Upload, X } from "lucide-react";
+import { CheckCircle2, Circle, Lock, Upload, X, CalendarClock } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import ClientProfileSetup from "@/components/client/ClientProfileSetup";
 import OnboardingQuestionnaire from "@/components/client/OnboardingQuestionnaire";
@@ -44,7 +45,7 @@ const CLIENT_STAGES = [
     label: "Strategy Session",
     description: "Plan your project together",
     items: [
-      { key: "strategy_meeting_held", label: "Attend the strategy planning meeting" },
+      { key: "strategy_meeting_held", label: "Schedule your strategy planning meeting", form: "strategyMeeting" },
       { key: "communication_channels_set", label: "Confirm preferred communication channel", form: "communicationChannel" },
     ],
   },
@@ -129,6 +130,21 @@ export default function ClientOnboarding() {
 
   const [brandAssetFiles, setBrandAssetFiles] = useState([]);
   const [uploadingAssets, setUploadingAssets] = useState(false);
+  const [meetingDateTime, setMeetingDateTime] = useState("");
+  const [meetingNotes, setMeetingNotes] = useState("");
+
+  const handleStrategyMeetingSubmit = async (e) => {
+    e.preventDefault();
+    if (!meetingDateTime) return;
+    // Save the requested meeting time into client notes
+    const noteEntry = `Strategy Meeting Request: ${new Date(meetingDateTime).toLocaleString()}${meetingNotes ? ` — ${meetingNotes}` : ""}`;
+    await base44.entities.Client.update(currentClient.id, {
+      notes: [currentClient.notes, noteEntry].filter(Boolean).join("\n\n"),
+    });
+    await mutation.mutateAsync({ key: "strategy_meeting_held", value: true });
+    setMeetingDateTime("");
+    setMeetingNotes("");
+  };
 
   const handleBrandAssetsSubmit = async (e) => {
     e.preventDefault();
@@ -268,6 +284,7 @@ export default function ClientOnboarding() {
                         if (item.form === "brandAssets") return formData.brandAssets;
                         if (item.form === "businessGoals") return formData.businessGoals;
                         if (item.form === "communicationChannel") return formData.communicationChannel;
+                        if (item.form === "strategyMeeting") return meetingDateTime;
                         return "";
                       };
 
@@ -303,6 +320,30 @@ export default function ClientOnboarding() {
                                 existingResponse={existingQuestionnaire}
                                 onComplete={() => mutation.mutate({ key: "questionnaire_completed", value: true })}
                               />
+                            ) : item.form === "strategyMeeting" ? (
+                              <form onSubmit={handleStrategyMeetingSubmit} className="mt-3 ml-8 space-y-3">
+                                <div className="space-y-2">
+                                  <p className="text-xs text-muted-foreground">Pick your preferred date & time for the strategy session:</p>
+                                  <Input
+                                    type="datetime-local"
+                                    value={meetingDateTime}
+                                    onChange={(e) => setMeetingDateTime(e.target.value)}
+                                    min={new Date().toISOString().slice(0, 16)}
+                                    required
+                                    className="text-sm"
+                                  />
+                                  <Textarea
+                                    placeholder="Any topics you'd like to cover or questions you have..."
+                                    value={meetingNotes}
+                                    onChange={(e) => setMeetingNotes(e.target.value)}
+                                    className="text-sm h-20"
+                                  />
+                                </div>
+                                <Button size="sm" type="submit" className="gap-2">
+                                  <CalendarClock className="w-4 h-4" />
+                                  Request Meeting
+                                </Button>
+                              </form>
                             ) : (
                               <form
                                 onSubmit={(e) => {
