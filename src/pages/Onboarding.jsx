@@ -6,8 +6,9 @@ import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, Users, Zap } from "lucide-react";
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, Users, Zap, CalendarCheck, CalendarX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigationItems = [
@@ -80,12 +81,13 @@ function getActiveStage(checklist) {
   return 0;
 }
 
-function ClientOnboardingCard({ client, checklist, onToggle }) {
-  // Format strategy meeting date for display
+function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, onSuggestMeeting }) {
   const strategyMeetingDate = checklist?.strategy_meeting_date
     ? new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
     : null;
   const [expanded, setExpanded] = useState(false);
+  const [suggestMode, setSuggestMode] = useState(false);
+  const [suggestedTime, setSuggestedTime] = useState("");
   const progress = getProgress(checklist);
   const activeStageIdx = getActiveStage(checklist);
 
@@ -145,13 +147,72 @@ function ClientOnboardingCard({ client, checklist, onToggle }) {
                             <span className={cn("text-xs leading-tight", done ? "line-through text-muted-foreground" : "text-foreground")}>
                               {item.label}
                             </span>
-                            {item.key === "strategy_meeting_held" && strategyMeetingDate && (
-                              <span className="text-xs text-primary font-medium">📅 {strategyMeetingDate}</span>
+                            {item.key === "strategy_meeting_held" && strategyMeetingDate && !done && (
+                              <span className="text-xs text-primary font-medium">{strategyMeetingDate}</span>
                             )}
                           </div>
                         </button>
                       );
                     })}
+                    {/* Meeting confirmation UI — show when a time has been requested but not yet confirmed */}
+                    {stage.id === "strategy" && checklist?.strategy_meeting_date && checklist?.strategy_meeting_held !== true && (
+                      <div onClick={(e) => e.stopPropagation()} className="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
+                        <p className="text-xs font-semibold text-blue-800">Client requested:</p>
+                        <p className="text-xs text-blue-700">{strategyMeetingDate}</p>
+                        {!suggestMode ? (
+                          <div className="flex gap-1.5">
+                            <Button
+                              size="sm"
+                              className="h-6 text-xs px-2 gap-1"
+                              onClick={() => onConfirmMeeting(client.id, checklist)}
+                            >
+                              <CalendarCheck className="w-3 h-3" />
+                              Confirm
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 text-xs px-2 gap-1"
+                              onClick={() => setSuggestMode(true)}
+                            >
+                              <CalendarX className="w-3 h-3" />
+                              Suggest New Time
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5">
+                            <Input
+                              type="datetime-local"
+                              value={suggestedTime}
+                              onChange={(e) => setSuggestedTime(e.target.value)}
+                              className="h-7 text-xs"
+                            />
+                            <div className="flex gap-1.5">
+                              <Button
+                                size="sm"
+                                className="h-6 text-xs px-2"
+                                disabled={!suggestedTime}
+                                onClick={() => {
+                                  onSuggestMeeting(client.id, checklist, suggestedTime);
+                                  setSuggestMode(false);
+                                  setSuggestedTime("");
+                                }}
+                              >
+                                Send
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 text-xs px-2"
+                                onClick={() => { setSuggestMode(false); setSuggestedTime(""); }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -177,18 +238,26 @@ export default function Onboarding() {
   });
 
   const mutation = useMutation({
-    mutationFn: async ({ clientId, checklistId, key, value }) => {
+    mutationFn: async ({ clientId, checklistId, updates }) => {
       if (checklistId) {
-        await base44.entities.OnboardingChecklist.update(checklistId, { [key]: value });
+        await base44.entities.OnboardingChecklist.update(checklistId, updates);
       } else {
-        await base44.entities.OnboardingChecklist.create({ client_id: clientId, [key]: value });
+        await base44.entities.OnboardingChecklist.create({ client_id: clientId, ...updates });
       }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] }),
   });
 
   const handleToggle = (clientId, checklist, key, value) => {
-    mutation.mutate({ clientId, checklistId: checklist?.id, key, value });
+    mutation.mutate({ clientId, checklistId: checklist?.id, updates: { [key]: value } });
+  };
+
+  const handleConfirmMeeting = (clientId, checklist) => {
+    mutation.mutate({ clientId, checklistId: checklist?.id, updates: { strategy_meeting_held: true } });
+  };
+
+  const handleSuggestMeeting = (clientId, checklist, newTime) => {
+    mutation.mutate({ clientId, checklistId: checklist?.id, updates: { strategy_meeting_date: newTime } });
   };
 
   // Show only onboarding-relevant clients (not churned)
@@ -264,6 +333,8 @@ export default function Onboarding() {
                     client={client}
                     checklist={checklist}
                     onToggle={handleToggle}
+                    onConfirmMeeting={handleConfirmMeeting}
+                    onSuggestMeeting={handleSuggestMeeting}
                   />
                 );
               })
