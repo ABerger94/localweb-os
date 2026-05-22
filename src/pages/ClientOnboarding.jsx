@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ClientProfileSetup from "@/components/client/ClientProfileSetup";
+import OnboardingQuestionnaire from "@/components/client/OnboardingQuestionnaire";
 
 const navigationItems = [
   { label: "Dashboard", href: "/client-portal" },
@@ -35,7 +36,7 @@ const CLIENT_STAGES = [
     items: [
       { key: "brand_assets_collected", label: "Upload your brand assets (logo, colors, fonts)", form: "brandAssets" },
       { key: "business_goals_documented", label: "Share your business goals & target audience", form: "businessGoals" },
-      { key: "questionnaire_completed", label: "Complete the onboarding questionnaire" },
+      { key: "questionnaire_completed", label: "Complete the onboarding questionnaire", form: "questionnaire" },
     ],
   },
   {
@@ -76,6 +77,14 @@ export default function ClientOnboarding() {
     queryKey: ["onboarding-checklists"],
     queryFn: () => base44.entities.OnboardingChecklist.list(),
   });
+
+  const { data: questionnaires = [] } = useQuery({
+    queryKey: ["onboarding-questionnaire"],
+    queryFn: () => base44.entities.OnboardingQuestionnaire.list(),
+    enabled: !!currentClient,
+  });
+
+  const existingQuestionnaire = questionnaires.find((q) => q.client_id === currentClient?.id);
 
   useEffect(() => {
     if (currentUser && clients.length > 0) {
@@ -265,29 +274,37 @@ export default function ClientOnboarding() {
                             </div>
                           </div>
                           {item.form && !done && prevStageDone && (
-                            <form
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                if (item.form === "brandAssets") handleBrandAssetsSubmit(e);
-                                else if (item.form === "businessGoals") handleBusinessGoalsSubmit(e);
-                                else if (item.form === "communicationChannel") handleCommunicationChannelSubmit(e);
-                              }}
-                              className="mt-3 ml-8 space-y-2"
-                            >
-                              <Textarea
-                                placeholder={item.label}
-                                value={getFormField()}
-                                onChange={(e) => {
-                                  if (item.form === "brandAssets") setFormData(prev => ({ ...prev, brandAssets: e.target.value }));
-                                  else if (item.form === "businessGoals") setFormData(prev => ({ ...prev, businessGoals: e.target.value }));
-                                  else if (item.form === "communicationChannel") setFormData(prev => ({ ...prev, communicationChannel: e.target.value }));
-                                }}
-                                className="text-sm h-20"
+                            item.form === "questionnaire" ? (
+                              <OnboardingQuestionnaire
+                                clientId={currentClient.id}
+                                existingResponse={existingQuestionnaire}
+                                onComplete={() => mutation.mutate({ key: "questionnaire_completed", value: true })}
                               />
-                              <Button size="sm" type="submit">
-                                Submit
-                              </Button>
-                            </form>
+                            ) : (
+                              <form
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  if (item.form === "brandAssets") handleBrandAssetsSubmit(e);
+                                  else if (item.form === "businessGoals") handleBusinessGoalsSubmit(e);
+                                  else if (item.form === "communicationChannel") handleCommunicationChannelSubmit(e);
+                                }}
+                                className="mt-3 ml-8 space-y-2"
+                              >
+                                <Textarea
+                                  placeholder={item.label}
+                                  value={getFormField()}
+                                  onChange={(e) => {
+                                    if (item.form === "brandAssets") setFormData(prev => ({ ...prev, brandAssets: e.target.value }));
+                                    else if (item.form === "businessGoals") setFormData(prev => ({ ...prev, businessGoals: e.target.value }));
+                                    else if (item.form === "communicationChannel") setFormData(prev => ({ ...prev, communicationChannel: e.target.value }));
+                                  }}
+                                  className="text-sm h-20"
+                                />
+                                <Button size="sm" type="submit">
+                                  Submit
+                                </Button>
+                              </form>
+                            )
                           )}
                         </div>
                       );
