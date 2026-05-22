@@ -60,8 +60,9 @@ Deno.serve(async (req) => {
 - Google rating (1-5, with decimal)
 - Number of reviews (10-200)
 - Why they need a website (specific pain point)
+- Google Maps search URL for the business
 
-Format as JSON array with fields: business_name, business_type, location, phone, google_rating, review_count, pain_point`,
+Format as JSON array with fields: business_name, business_type, location, phone, google_rating, review_count, pain_point, google_search_url`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -76,9 +77,10 @@ Format as JSON array with fields: business_name, business_type, location, phone,
                 phone: { type: "string" },
                 google_rating: { type: "number" },
                 review_count: { type: "number" },
-                pain_point: { type: "string" }
+                pain_point: { type: "string" },
+                google_search_url: { type: "string" }
               },
-              required: ["business_name", "business_type", "location", "phone", "google_rating", "review_count", "pain_point"]
+              required: ["business_name", "business_type", "location", "phone", "google_rating", "review_count", "pain_point", "google_search_url"]
             }
           }
         },
@@ -100,7 +102,7 @@ Format as JSON array with fields: business_name, business_type, location, phone,
         google_rating: lead.google_rating,
         status: "Lead",
         pipeline_stage: "Prospect",
-        notes: `LEAD GENERATED AUTOMATICALLY\n\nPain Point: ${lead.pain_point}\n\nGoogle Rating: ${lead.google_rating}/5 (${lead.review_count} reviews)\n\nOutreach Angle: Focus on their lack of web presence and how competitors with websites are capturing their potential customers. Mention specific improvements like online booking, menu/services display, customer testimonials, etc.`
+        notes: `LEAD GENERATED AUTOMATICALLY\n\nGoogle Search: ${lead.google_search_url}\n\nPain Point: ${lead.pain_point}\n\nGoogle Rating: ${lead.google_rating}/5 (${lead.review_count} reviews)\n\nOutreach Angle: Focus on their lack of web presence and how competitors with websites are capturing their potential customers. Mention specific improvements like online booking, menu/services display, customer testimonials, etc.`
       };
 
       const createdClient = await base44.asServiceRole.entities.Client.create(clientData);
