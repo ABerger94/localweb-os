@@ -116,10 +116,12 @@ export default function ClientOnboarding() {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar items={navigationItems} isClientPortal />
-        <div className="flex-1 lg:ml-64 flex items-center justify-center">
+        <div className="flex-1 lg:ml-64 flex items-center justify-center p-6">
           <div className="text-center max-w-md p-8">
-            <h2 className="text-xl font-semibold mb-2">Portal Not Yet Set Up</h2>
-            <p className="text-muted-foreground">Contact your agency to link your account.</p>
+            <h2 className="text-xl font-semibold mb-2">Setting Up Your Account</h2>
+            <p className="text-muted-foreground mb-4">
+              Your account is not yet linked to a client profile. Your agency will set this up shortly — please check back soon or contact your account manager.
+            </p>
           </div>
         </div>
       </div>

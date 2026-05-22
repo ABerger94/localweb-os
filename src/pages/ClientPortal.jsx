@@ -12,7 +12,8 @@ import {
   FileText,
   CheckCircle2,
   AlertCircle,
-  Plus,
+  ArrowRight,
+  Sparkles,
 } from "lucide-react";
 
 const navigationItems = [
@@ -93,11 +94,48 @@ export default function ClientPortal() {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar items={navigationItems} isClientPortal />
-        <div className="flex-1 lg:ml-64 flex items-center justify-center">
-          <div className="text-center max-w-md p-8">
-            <h2 className="text-xl font-semibold text-foreground mb-2">Portal Not Yet Set Up</h2>
-            <p className="text-muted-foreground">
-              Your account hasn't been linked to a client profile yet. Please contact your agency to get access set up.
+        <div className="flex-1 lg:ml-64 flex items-center justify-center p-6">
+          <div className="max-w-lg w-full">
+            {/* Welcome Hero */}
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Welcome to Local Web Connect</h1>
+              <p className="text-muted-foreground text-base">
+                Let's get your account set up so we can start building your online presence.
+              </p>
+            </div>
+
+            {/* Steps Preview */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-base">Here's what we'll do together:</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  { step: "1", label: "Tell us about your business" },
+                  { step: "2", label: "Share your brand assets & goals" },
+                  { step: "3", label: "Schedule your strategy session" },
+                  { step: "4", label: "Kick off your first project" },
+                ].map((item) => (
+                  <div key={item.step} className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">
+                      {item.step}
+                    </div>
+                    <p className="text-sm text-foreground">{item.label}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Button asChild className="w-full gap-2 text-base py-6">
+              <Link to="/client-portal/onboarding">
+                Begin Onboarding <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Takes about 5–10 minutes to complete
             </p>
           </div>
         </div>
