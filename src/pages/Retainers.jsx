@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import StatCard from "@/components/shared/StatCard";
+import RetainerModal from "@/components/retainers/RetainerModal";
 import { Card } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Plus, Pencil, FileText } from "lucide-react";
 
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: null },
@@ -17,6 +20,9 @@ const navigationItems = [
 ];
 
 export default function Retainers() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRetainer, setEditingRetainer] = useState(null);
+
   const { data: retainers = [] } = useQuery({
     queryKey: ["retainers"],
     queryFn: () => base44.entities.Retainer.list(),
@@ -27,13 +33,15 @@ export default function Retainers() {
     queryFn: () => base44.entities.Client.list(),
   });
 
-  const getClientName = (clientId) => {
-    return clients.find((c) => c.id === clientId)?.business_name || "Unknown";
-  };
+  const getClientName = (clientId) =>
+    clients.find((c) => c.id === clientId)?.business_name || "Unknown";
 
   const mrr = retainers
     .filter((r) => r.status === "Active")
     .reduce((sum, r) => sum + (r.monthly_amount || 0), 0);
+
+  const openCreate = () => { setEditingRetainer(null); setModalOpen(true); };
+  const openEdit = (r) => { setEditingRetainer(r); setModalOpen(true); };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -46,42 +54,63 @@ export default function Retainers() {
             description="Manage recurring revenue"
             actionLabel="New Retainer"
             actionIcon={Plus}
+            action={openCreate}
           />
 
           <div className="mb-8">
-            <StatCard
-              title="Monthly Recurring Revenue"
-              value={`$${mrr.toFixed(0)}`}
-            />
+            <StatCard title="Monthly Recurring Revenue" value={`$${mrr.toFixed(0)}`} />
           </div>
 
           <div className="grid grid-cols-1 gap-4">
+            {retainers.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-8">No retainers yet. Create your first one.</p>
+            )}
             {retainers.map((retainer) => (
               <Card key={retainer.id} className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {getClientName(retainer.client_id)}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {retainer.description}
-                    </p>
-                    <div className="flex gap-4 mt-3">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {getClientName(retainer.client_id)}
+                      </h3>
+                      {retainer.agreement_file_url && (
+                        <a href={retainer.agreement_file_url} target="_blank" rel="noreferrer" title="View agreement">
+                          <FileText className="w-4 h-4 text-primary hover:opacity-70" />
+                        </a>
+                      )}
+                    </div>
+                    {retainer.description && (
+                      <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{retainer.description}</p>
+                    )}
+                    <div className="flex items-center gap-4 mt-2 flex-wrap">
                       <div>
                         <p className="text-xs text-muted-foreground">Monthly</p>
-                        <p className="text-lg font-semibold text-foreground">
-                          ${retainer.monthly_amount.toFixed(2)}
-                        </p>
+                        <p className="text-lg font-semibold text-foreground">${retainer.monthly_amount?.toFixed(2)}</p>
                       </div>
                       <StatusBadge status={retainer.status} />
+                      {retainer.next_billing_date && (
+                        <p className="text-xs text-muted-foreground">
+                          Next billing: {new Date(retainer.next_billing_date).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
                   </div>
+                  <Button variant="ghost" size="icon" onClick={() => openEdit(retainer)}>
+                    <Pencil className="w-4 h-4" />
+                  </Button>
                 </div>
               </Card>
             ))}
           </div>
         </div>
       </div>
+
+      <RetainerModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        clients={clients}
+        retainer={editingRetainer}
+      />
     </div>
   );
 }

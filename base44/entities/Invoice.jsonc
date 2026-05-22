@@ -48,6 +48,10 @@
       "type": "string",
       "description": "Invoice description or line items"
     },
+    "file_url": {
+      "type": "string",
+      "description": "URL to uploaded invoice file (PDF, image, etc.)"
+    },
     "stripe_payment_intent_id": {
       "type": "string",
       "description": "Stripe payment intent ID for tracking"

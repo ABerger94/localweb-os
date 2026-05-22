@@ -43,6 +43,10 @@
       "type": "string",
       "format": "date",
       "description": "Date of next automated invoice"
+    },
+    "agreement_file_url": {
+      "type": "string",
+      "description": "URL to uploaded retainer agreement file (PDF, image, etc.)"
     }
   },
   "required": [
