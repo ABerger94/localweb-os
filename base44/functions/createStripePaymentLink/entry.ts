@@ -29,43 +29,34 @@ Deno.serve(async (req) => {
 
     const stripe = new Stripe(stripeSecret);
 
-    // Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
+    // Create PaymentIntent for embedded payment
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100), // Convert to cents
+      currency: 'usd',
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `Invoice Payment - ${clientName || 'Client'}`,
-              description: `Invoice ${invoiceId}`,
-            },
-            unit_amount: Math.round(amount * 100), // Convert to cents
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${req.headers.get('origin')}/client-portal/invoices?payment=success`,
-      cancel_url: `${req.headers.get('origin')}/client-portal/invoices?payment=cancelled`,
-      customer_email: clientEmail,
       metadata: {
         invoiceId,
         type: 'invoice_payment',
+        base44_app_id: Deno.env.get('BASE44_APP_ID'),
+      },
+      automatic_payment_methods: {
+        enabled: true,
       },
     });
 
     // Update invoice with Stripe payment intent ID
     await base44.asServiceRole.entities.Invoice.update(invoiceId, {
-      stripe_payment_intent_id: session.payment_intent as string,
+      stripe_payment_intent_id: paymentIntent.id,
     });
 
     return Response.json({
       success: true,
-      paymentLink: session.url,
-      message: 'Payment link created successfully',
+      clientSecret: paymentIntent.client_secret,
+      publishableKey: Deno.env.get('STRIPE_PUBLISHABLE_KEY'),
+      message: 'Payment intent created successfully',
     });
   } catch (error) {
+    console.error('Stripe payment error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

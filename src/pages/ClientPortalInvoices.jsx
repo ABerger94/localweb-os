@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import StatCard from "@/components/shared/StatCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, ExternalLink, Bell } from "lucide-react";
+import { DollarSign, X, Loader2 } from "lucide-react";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
+import StripePaymentForm from "@/components/invoices/StripePaymentForm";
 
 const navigationItems = [
   { label: "Dashboard", href: "/client-portal", icon: null },
@@ -21,6 +24,10 @@ const navigationItems = [
 
 export default function ClientPortalInvoices() {
   const [currentClient, setCurrentClient] = useState(null);
+  const [payingInvoice, setPayingInvoice] = useState(null);
+  const [stripePromise, setStripePromise] = useState(null);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [loadingPayment, setLoadingPayment] = useState(false);
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
@@ -47,6 +54,44 @@ export default function ClientPortalInvoices() {
   const totalPaid = clientInvoices
     .filter((i) => i.status === "Paid")
     .reduce((sum, i) => sum + (i.amount || 0), 0);
+
+  const handleInitiatePayment = async (invoice) => {
+    try {
+      setLoadingPayment(true);
+      const res = await base44.functions.invoke("createStripePaymentLink", {
+        invoiceId: invoice.id,
+        amount: invoice.amount,
+        clientEmail: currentClient.contact_email,
+        clientName: currentClient.business_name,
+      });
+      
+      if (res.data?.clientSecret && res.data?.publishableKey) {
+        setClientSecret(res.data.clientSecret);
+        setStripePromise(loadStripe(res.data.publishableKey));
+        setPayingInvoice(invoice);
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert("Failed to initiate payment. Please try again.");
+    } finally {
+      setLoadingPayment(false);
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    // Mark invoice as paid
+    await base44.entities.Invoice.update(payingInvoice.id, {
+      status: "Paid",
+      paid_date: new Date().toISOString().split("T")[0],
+    });
+    
+    // Close payment modal
+    setPayingInvoice(null);
+    setClientSecret(null);
+    
+    // Refresh data
+    window.location.reload();
+  };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -92,35 +137,52 @@ export default function ClientPortalInvoices() {
                     </div>
                   </div>
                   {invoice.status === "Pending" && (
-                    <Button onClick={async () => {
-                      try {
-                        const res = await base44.functions.invoke("createStripePaymentLink", {
-                          invoiceId: invoice.id,
-                          amount: invoice.amount,
-                          clientEmail: currentClient.contact_email,
-                          clientName: currentClient.business_name,
-                        });
-                        if (res.data?.paymentLink) {
-                          // Check if running in iframe
-                          if (window.self !== window.top) {
-                            alert("For security reasons, please open this page in a full browser window to complete payment.");
-                            return;
-                          }
-                          window.open(res.data.paymentLink, "_blank");
-                        }
-                      } catch (error) {
-                        console.error("Payment error:", error);
-                        alert("Failed to initiate payment. Please try again.");
-                      }
-                    }}>
-                      Pay Now
-                      <ExternalLink className="w-4 h-4 ml-1" />
+                    <Button 
+                      onClick={() => handleInitiatePayment(invoice)}
+                      disabled={loadingPayment}
+                    >
+                      {loadingPayment ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        "Pay Now"
+                      )}
                     </Button>
                   )}
                 </div>
               </Card>
             ))}
           </div>
+
+          {/* Embedded Payment Modal */}
+          {payingInvoice && stripePromise && clientSecret && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-card rounded-lg shadow-xl max-w-md w-full p-6 relative">
+                <button
+                  onClick={() => {
+                    setPayingInvoice(null);
+                    setClientSecret(null);
+                  }}
+                  className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                
+                <h3 className="text-lg font-semibold mb-4">
+                  Pay Invoice #{payingInvoice.invoice_number}
+                </h3>
+                
+                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                  <StripePaymentForm 
+                    amount={payingInvoice.amount} 
+                    onSuccess={handlePaymentSuccess}
+                  />
+                </Elements>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
