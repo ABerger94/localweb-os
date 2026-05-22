@@ -39,7 +39,7 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
     const body = encodeURIComponent(
       `Hi ${client?.contact_name || "there"},\n\nWelcome aboard! We're thrilled to have ${client?.business_name || "your business"} as a client.\n\nWe'll be in touch shortly to get started.\n\nBest regards,\nLocal Web Connect`
     );
-    window.open(`mailto:${client?.contact_email}?subject=${subject}&body=${body}`, '_blank');
+    window.location.href = `mailto:${client?.contact_email}?subject=${subject}&body=${body}`;
   };
 
   const { data: questionnaires = [] } = useQuery({
