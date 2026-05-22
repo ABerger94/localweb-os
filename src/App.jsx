@@ -4,6 +4,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { Navigate } from 'react-router-dom';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Dashboard from '@/pages/Dashboard';
@@ -16,8 +17,18 @@ import ClientPortal from '@/pages/ClientPortal';
 import ClientPortalProjects from '@/pages/ClientPortalProjects';
 import ClientPortalInvoices from '@/pages/ClientPortalInvoices';
 
+const ADMIN_EMAIL = 'Alek.n.berger@gmail.com';
+
+const AdminRoute = ({ children }) => {
+  const { user } = useAuth();
+  if (user?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    return <Navigate to="/client-portal" replace />;
+  }
+  return children;
+};
+
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -37,6 +48,18 @@ const AuthenticatedApp = () => {
       navigateToLogin();
       return null;
     }
+  }
+
+  // Redirect non-admin users straight to client portal
+  if (user && user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    return (
+      <Routes>
+        <Route path="/client-portal" element={<ClientPortal />} />
+        <Route path="/client-portal/projects" element={<ClientPortalProjects />} />
+        <Route path="/client-portal/invoices" element={<ClientPortalInvoices />} />
+        <Route path="*" element={<Navigate to="/client-portal" replace />} />
+      </Routes>
+    );
   }
 
   // Render the main app
