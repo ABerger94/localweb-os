@@ -17,6 +17,7 @@ const navigationItems = [
   { label: "Invoices", href: "/invoices", icon: null },
   { label: "Retainers", href: "/retainers", icon: null },
   { label: "Designer", href: "/designer", icon: null },
+  { label: "QR Code", href: "/qr-code", icon: null },
 ];
 
 export default function Invoices() {

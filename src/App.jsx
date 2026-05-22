@@ -21,6 +21,7 @@ import ClientOnboarding from '@/pages/ClientOnboarding';
 import ClientPortalSupport from '@/pages/ClientPortalSupport';
 import ClientPortalRetainers from '@/pages/ClientPortalRetainers';
 import SupportTickets from '@/pages/SupportTickets';
+import QRCodePage from '@/pages/QRCode';
 
 
 
@@ -74,6 +75,7 @@ const AuthenticatedApp = () => {
       <Route path="/designer" element={<Designer />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/support" element={<SupportTickets />} />
+      <Route path="/qr-code" element={<QRCodePage />} />
       
       {/* Client Portal Routes */}
       <Route path="/client-portal" element={<ClientPortal />} />

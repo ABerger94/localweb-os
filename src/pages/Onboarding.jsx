@@ -20,6 +20,7 @@ const navigationItems = [
   { label: "Invoices", href: "/invoices" },
   { label: "Retainers", href: "/retainers" },
   { label: "Designer", href: "/designer" },
+  { label: "QR Code", href: "/qr-code" },
 ];
 
 const PIPELINE_STAGES = [

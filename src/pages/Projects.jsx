@@ -20,6 +20,7 @@ const navigationItems = [
   { label: "Retainers", href: "/retainers", icon: null },
   { label: "Support Tickets", href: "/support", icon: null },
   { label: "Designer", href: "/designer", icon: null },
+  { label: "QR Code", href: "/qr-code", icon: null },
 ];
 
 const STATUS_OPTIONS = ["All", "Not Started", "In Progress", "Review", "Approved", "Delivered"];
