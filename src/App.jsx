@@ -58,6 +58,7 @@ const AuthenticatedApp = () => {
         <Route path="/client-portal/invoices" element={<ClientPortalInvoices />} />
         <Route path="/client-portal/onboarding" element={<ClientOnboarding />} />
         <Route path="/client-portal/retainers" element={<ClientPortalRetainers />} />
+        <Route path="/client-portal/assets" element={<ClientPortalAssets />} />
         <Route path="/client-portal/support" element={<ClientPortalSupport />} />
         <Route path="*" element={<Navigate to="/client-portal" replace />} />
       </Routes>
@@ -84,6 +85,8 @@ const AuthenticatedApp = () => {
       <Route path="/client-portal/invoices" element={<ClientPortalInvoices />} />
       <Route path="/client-portal/retainers" element={<ClientPortalRetainers />} />
       <Route path="/client-portal/assets" element={<ClientPortalAssets />} />
+      <Route path="/client-portal/support" element={<ClientPortalSupport />} />
+      <Route path="/client-portal/onboarding" element={<ClientOnboarding />} />
       
       <Route path="*" element={<PageNotFound />} />
     </Routes>
