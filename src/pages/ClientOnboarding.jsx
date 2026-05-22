@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, Lock, Upload, X, CalendarClock, CreditCard, FileSignature, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import ClientProfileSetup from "@/components/client/ClientProfileSetup";
 import OnboardingQuestionnaire from "@/components/client/OnboardingQuestionnaire";
@@ -538,42 +539,44 @@ export default function ClientOnboarding() {
                                       Your agency will review and confirm this time shortly. You'll receive an email confirmation.
                                     </p>
                                   ) : (
-                                    <div className="space-y-2">
-                                      <p className="text-xs text-blue-700">
-                                        Your agency has proposed this time. Please confirm or suggest an alternative.
-                                      </p>
-                                      <div className="flex gap-2">
-                                        <Button
-                                          size="sm"
-                                          className="h-8 text-xs"
-                                          onClick={async () => {
-                                            try {
-                                              await base44.functions.invoke('confirmMeetingTime', {
-                                                checklistId: checklist.id,
-                                                confirmedBy: 'client',
-                                              });
-                                              queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
-                                            } catch (error) {
-                                              console.error('Error confirming:', error);
-                                            }
-                                          }}
-                                        >
-                                          ✓ Confirm This Time
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          className="h-8 text-xs"
-                                          onClick={() => {
-                                            setMeetingDateTime('');
-                                            setMeetingNotes('');
-                                            // Scroll to form
-                                            const form = document.getElementById('strategy-meeting-form');
-                                            if (form) form.scrollIntoView({ behavior: 'smooth' });
-                                          }}
-                                        >
-                                          ↺ Suggest New Time
-                                        </Button>
+                                    <div className="space-y-3">
+                                      <div className="p-3 bg-white rounded border border-blue-200">
+                                        <p className="text-sm font-medium text-blue-900 mb-2">
+                                          Your agency has proposed this time. What would you like to do?
+                                        </p>
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                          <Button
+                                            size="sm"
+                                            className="flex-1 h-9 text-sm bg-green-600 hover:bg-green-700"
+                                            onClick={async () => {
+                                              try {
+                                                await base44.functions.invoke('confirmMeetingTime', {
+                                                  checklistId: checklist.id,
+                                                  confirmedBy: 'client',
+                                                });
+                                                queryClient.invalidateQueries({ queryKey: ['onboarding-checklists'] });
+                                              } catch (error) {
+                                                console.error('Error confirming:', error);
+                                                alert('Failed to confirm. Please try again.');
+                                              }
+                                            }}
+                                          >
+                                            ✓ Confirm This Time
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="flex-1 h-9 text-sm"
+                                            onClick={() => {
+                                              setMeetingDateTime('');
+                                              setMeetingNotes('');
+                                              const form = document.getElementById('strategy-meeting-form');
+                                              if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                            }}
+                                          >
+                                            ↺ Suggest Different Time
+                                          </Button>
+                                        </div>
                                       </div>
                                     </div>
                                   )}
@@ -588,10 +591,44 @@ export default function ClientOnboarding() {
                                     You'll receive a calendar invitation via email.
                                   </p>
                                 </div>
+                              ) : checklist?.strategy_meeting_proposed_by === 'client' && !checklist?.strategy_meeting_confirmed ? (
+                                <div className="mt-3 ml-8 p-3 rounded-lg bg-amber-50 border border-amber-200 space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-xs font-medium text-amber-800">Your Time Request</p>
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
+                                      Awaiting agency confirmation
+                                    </span>
+                                  </div>
+                                  <p className="text-sm font-semibold text-amber-900">
+                                    📅 {new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                                  </p>
+                                  <p className="text-xs text-amber-700">
+                                    Your agency will review and confirm shortly. You'll receive an email notification.
+                                  </p>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 text-xs mt-2"
+                                    onClick={() => {
+                                      setMeetingDateTime('');
+                                      setMeetingNotes('');
+                                      const form = document.getElementById('strategy-meeting-form');
+                                      if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }}
+                                  >
+                                    ↺ Suggest Different Time
+                                  </Button>
+                                </div>
                               ) : (
                                 <form id="strategy-meeting-form" onSubmit={handleStrategyMeetingSubmit} className="mt-3 ml-8 space-y-3">
+                                  <div className="p-3 bg-muted/30 rounded-lg border mb-3">
+                                    <p className="text-sm font-medium mb-1">Propose a Meeting Time</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Suggest a date and time for your 30-minute strategy session. We'll review and confirm within 24 hours.
+                                    </p>
+                                  </div>
                                   <div className="space-y-2">
-                                    <p className="text-xs font-medium text-foreground">Propose a date & time for your strategy session:</p>
+                                    <Label className="text-sm font-medium">Select Date & Time</Label>
                                     <Input
                                       type="datetime-local"
                                       value={meetingDateTime}
@@ -600,16 +637,17 @@ export default function ClientOnboarding() {
                                       required
                                       className="text-sm"
                                     />
+                                    <Label className="text-sm font-medium mt-3">Additional Notes (Optional)</Label>
                                     <Textarea
-                                      placeholder="Any specific topics you'd like to cover or questions you have?"
+                                      placeholder="Topics to discuss, questions, or preferred meeting format (phone, video call, etc.)"
                                       value={meetingNotes}
                                       onChange={(e) => setMeetingNotes(e.target.value)}
                                       className="text-sm h-20"
                                     />
                                   </div>
-                                  <Button size="sm" type="submit" className="gap-2" disabled={submittingMeeting}>
+                                  <Button size="sm" type="submit" className="gap-2 w-full sm:w-auto" disabled={submittingMeeting}>
                                     <CalendarClock className="w-4 h-4" />
-                                    {submittingMeeting ? "Proposing..." : "Propose Meeting Time"}
+                                    {submittingMeeting ? "Submitting..." : "Submit Proposed Time"}
                                   </Button>
                                 </form>
                               )
