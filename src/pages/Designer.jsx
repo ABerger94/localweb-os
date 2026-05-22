@@ -7,10 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: null },
   { label: "Clients", href: "/clients", icon: null },
+  { label: "Onboarding", href: "/onboarding", icon: null },
   { label: "Projects", href: "/projects", icon: null },
   { label: "Invoices", href: "/invoices", icon: null },
   { label: "Retainers", href: "/retainers", icon: null },
+  { label: "Support Tickets", href: "/support", icon: null },
   { label: "Designer", href: "/designer", icon: null },
+  { label: "QR Code", href: "/qr-code", icon: null },
 ];
 
 export default function Designer() {
