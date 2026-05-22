@@ -131,7 +131,7 @@ export default function ClientPortalInvoices() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-muted-foreground">
-                      Invoice #{invoice.invoice_number}
+                      Invoice #{invoice.invoice_number || invoice.id.slice(-6)}
                     </p>
                     <p className="text-2xl font-bold text-foreground mt-1">
                       ${invoice.amount.toFixed(2)}
