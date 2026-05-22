@@ -59,6 +59,9 @@ export default function ClientPortalInvoices() {
     try {
       setLoadingPayment(true);
       console.log("Initiating payment for invoice:", invoice.id);
+      console.log("Current client:", currentClient);
+      console.log("Invoice amount:", invoice.amount);
+      
       const res = await base44.functions.invoke("createStripePaymentLink", {
         invoiceId: invoice.id,
         amount: invoice.amount,
@@ -66,7 +69,13 @@ export default function ClientPortalInvoices() {
         clientName: currentClient.business_name,
       });
       
-      console.log("Payment response:", res.data);
+      console.log("Payment response status:", res.status);
+      console.log("Payment response data:", res.data);
+      
+      if (res.status === 403) {
+        alert("Access denied. Please refresh the page and try again.");
+        return;
+      }
       
       if (res.data?.clientSecret && res.data?.publishableKey) {
         console.log("Setting up payment modal");
@@ -79,7 +88,8 @@ export default function ClientPortalInvoices() {
       }
     } catch (error) {
       console.error("Payment error:", error);
-      alert("Failed to initiate payment. Please try again.");
+      console.error("Error details:", error.response?.data);
+      alert("Failed to initiate payment: " + (error.response?.data?.error || error.message));
     } finally {
       setLoadingPayment(false);
     }
