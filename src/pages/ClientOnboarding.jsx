@@ -18,14 +18,14 @@ const navigationItems = [
   { label: "Onboarding", href: "/client-portal/onboarding" },
 ];
 
-// Client-facing checklist items (subset of admin items)
+// Client-facing checklist items
 const CLIENT_STAGES = [
   {
     id: "welcome",
     label: "Welcome & Access",
     description: "Get set up and ready to start",
     items: [
-      { key: "portal_access_granted", label: "Log into your client portal", clientAction: false, autoComplete: true },
+      { key: "portal_access_granted", label: "Log into your client portal", autoComplete: true },
     ],
   },
   {
@@ -33,9 +33,9 @@ const CLIENT_STAGES = [
     label: "Share Your Information",
     description: "Help us understand your business",
     items: [
-      { key: "brand_assets_collected", label: "Upload your brand assets (logo, colors, fonts)", clientAction: true },
-      { key: "business_goals_documented", label: "Share your business goals & target audience", clientAction: true },
-      { key: "questionnaire_completed", label: "Complete the onboarding questionnaire", clientAction: true },
+      { key: "brand_assets_collected", label: "Upload your brand assets (logo, colors, fonts)", form: "brandAssets" },
+      { key: "business_goals_documented", label: "Share your business goals & target audience", form: "businessGoals" },
+      { key: "questionnaire_completed", label: "Complete the onboarding questionnaire" },
     ],
   },
   {
@@ -43,8 +43,8 @@ const CLIENT_STAGES = [
     label: "Strategy Session",
     description: "Plan your project together",
     items: [
-      { key: "strategy_meeting_held", label: "Attend the strategy planning meeting", clientAction: false },
-      { key: "communication_channels_set", label: "Confirm preferred communication channel", clientAction: true },
+      { key: "strategy_meeting_held", label: "Attend the strategy planning meeting" },
+      { key: "communication_channels_set", label: "Confirm preferred communication channel", form: "communicationChannel" },
     ],
   },
   {
@@ -52,8 +52,8 @@ const CLIENT_STAGES = [
     label: "Project Kick-off",
     description: "Start your journey with us",
     items: [
-      { key: "initial_invoice_sent", label: "Pay your setup invoice", clientAction: false },
-      { key: "retainer_agreement_signed", label: "Review & sign your retainer agreement", clientAction: false },
+      { key: "initial_invoice_sent", label: "Pay your setup invoice" },
+      { key: "retainer_agreement_signed", label: "Review & sign your retainer agreement" },
     ],
   },
 ];
@@ -87,6 +87,12 @@ export default function ClientOnboarding() {
   }, [currentUser, clients]);
 
   const checklist = checklists.find((ch) => ch.client_id === currentClient?.id);
+  const [formData, setFormData] = useState({
+    brandAssets: "",
+    businessGoals: "",
+    communicationChannel: "",
+    notes: "",
+  });
 
   // Auto-mark portal_access_granted as true when client views this page
   useEffect(() => {
@@ -99,7 +105,7 @@ export default function ClientOnboarding() {
       base44.entities.OnboardingChecklist.create({ client_id: currentClient.id, portal_access_granted: true })
         .then(() => queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] }));
     }
-  }, [currentClient, checklist, checklistsLoading]);
+  }, [currentClient, checklist, checklistsLoading, queryClient]);
 
   const mutation = useMutation({
     mutationFn: async ({ key, value }) => {
@@ -111,6 +117,30 @@ export default function ClientOnboarding() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] }),
   });
+
+  const handleBrandAssetsSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.brandAssets.trim()) {
+      await mutation.mutateAsync({ key: "brand_assets_collected", value: true });
+      setFormData(prev => ({ ...prev, brandAssets: "" }));
+    }
+  };
+
+  const handleBusinessGoalsSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.businessGoals.trim()) {
+      await mutation.mutateAsync({ key: "business_goals_documented", value: true });
+      setFormData(prev => ({ ...prev, businessGoals: "" }));
+    }
+  };
+
+  const handleCommunicationChannelSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.communicationChannel.trim()) {
+      await mutation.mutateAsync({ key: "communication_channels_set", value: true });
+      setFormData(prev => ({ ...prev, communicationChannel: "" }));
+    }
+  };
 
   const isLoading = !currentUser || clientsLoading || checklistsLoading;
 
@@ -199,15 +229,27 @@ export default function ClientOnboarding() {
                       {!prevStageDone && <Lock className="w-4 h-4 text-muted-foreground ml-auto" />}
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-4">
                     {stageItems.map((item) => {
                       const done = checklist?.[item.key] === true;
+                      const getFormField = () => {
+                        if (item.form === "brandAssets") return formData.brandAssets;
+                        if (item.form === "businessGoals") return formData.businessGoals;
+                        if (item.form === "communicationChannel") return formData.communicationChannel;
+                        return "";
+                      };
+
                       return (
-                        <div key={item.key} className="flex items-start gap-3 p-3 rounded-lg bg-muted/40">
-                          {item.clientAction ? (
+                        <div key={item.key}>
+                          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/40">
                             <button
-                              disabled={!prevStageDone}
-                              onClick={() => mutation.mutate({ key: item.key, value: !done })}
+                              disabled={!prevStageDone || !item.form || done}
+                              onClick={() => {
+                                if (!item.form) return;
+                                if (item.form === "brandAssets" && !done) handleBrandAssetsSubmit({ preventDefault: () => {} });
+                                else if (item.form === "businessGoals" && !done) handleBusinessGoalsSubmit({ preventDefault: () => {} });
+                                else if (item.form === "communicationChannel" && !done) handleCommunicationChannelSubmit({ preventDefault: () => {} });
+                              }}
                               className="mt-0.5 shrink-0 disabled:cursor-not-allowed"
                             >
                               {done ? (
@@ -216,26 +258,37 @@ export default function ClientOnboarding() {
                                 <Circle className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
                               )}
                             </button>
-                          ) : (
-                            <div className="mt-0.5 shrink-0">
-                              {done ? (
-                                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                              ) : (
-                                <Circle className="w-5 h-5 text-muted-foreground" />
-                              )}
+                            <div className="flex-1">
+                              <p className={cn("text-sm font-medium", done && "line-through text-muted-foreground")}>
+                                {item.label}
+                              </p>
                             </div>
-                          )}
-                          <div className="flex-1">
-                            <p className={cn("text-sm font-medium", done && "line-through text-muted-foreground")}>
-                              {item.label}
-                            </p>
-                            {item.clientAction && !done && (
-                              <p className="text-xs text-primary mt-0.5">Action required by you</p>
-                            )}
-                            {!item.clientAction && !item.autoComplete && !done && (
-                              <p className="text-xs text-muted-foreground mt-0.5">Your agency will complete this</p>
-                            )}
                           </div>
+                          {item.form && !done && prevStageDone && (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                if (item.form === "brandAssets") handleBrandAssetsSubmit(e);
+                                else if (item.form === "businessGoals") handleBusinessGoalsSubmit(e);
+                                else if (item.form === "communicationChannel") handleCommunicationChannelSubmit(e);
+                              }}
+                              className="mt-3 ml-8 space-y-2"
+                            >
+                              <Textarea
+                                placeholder={item.label}
+                                value={getFormField()}
+                                onChange={(e) => {
+                                  if (item.form === "brandAssets") setFormData(prev => ({ ...prev, brandAssets: e.target.value }));
+                                  else if (item.form === "businessGoals") setFormData(prev => ({ ...prev, businessGoals: e.target.value }));
+                                  else if (item.form === "communicationChannel") setFormData(prev => ({ ...prev, communicationChannel: e.target.value }));
+                                }}
+                                className="text-sm h-20"
+                              />
+                              <Button size="sm" type="submit">
+                                Submit
+                              </Button>
+                            </form>
+                          )}
                         </div>
                       );
                     })}
