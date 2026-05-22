@@ -16,8 +16,15 @@ Deno.serve(async (req) => {
     }
 
     // Get checklist and client
-    const checklist = await base44.entities.OnboardingChecklist.get(checklistId);
-    const client = await base44.entities.Client.get(checklist.client_id);
+    const checklists = await base44.entities.OnboardingChecklist.filter({ id: checklistId });
+    const checklist = checklists[0];
+    
+    if (!checklist) {
+      return Response.json({ error: 'Checklist not found' }, { status: 404 });
+    }
+    
+    const clients = await base44.entities.Client.filter({ id: checklist.client_id });
+    const client = clients[0];
 
     // Create proposal history entry
     const newProposal = {
@@ -59,8 +66,8 @@ Deno.serve(async (req) => {
         body: `Hi ${client.contact_name || 'there'},\n\nYour agency has proposed a new time for your ${meetingLabel.toLowerCase()}:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Notes: ${notes}\n\n` : ''}Please log into your client portal to confirm this time or suggest an alternative.\n\nBest regards,\nLocal Web Connect`,
       });
     } else {
-      // Client proposed - notify agency admin
-      const admins = await base44.entities.User.filter({ role: 'admin' });
+      // Client proposed - notify agency admin (use service role to list admins)
+      const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
       for (const admin of admins) {
         await base44.integrations.Core.SendEmail({
           to: admin.email,
