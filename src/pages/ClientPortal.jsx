@@ -28,7 +28,7 @@ export default function ClientPortal() {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentClient, setCurrentClient] = useState(null);
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [], isLoading: clientsLoading } = useQuery({
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list(),
   });
@@ -59,23 +59,46 @@ export default function ClientPortal() {
       try {
         const user = await base44.auth.me();
         setCurrentUser(user);
-        // Find client by user_email
-        const client = clients.find((c) => c.user_email === user.email);
-        setCurrentClient(client);
       } catch (error) {
         console.error("Error loading user:", error);
       }
     }
     loadUser();
-  }, [clients]);
+  }, []);
+
+  // Find client once both user and clients are loaded
+  useEffect(() => {
+    if (currentUser && clients.length > 0) {
+      const client = clients.find(
+        (c) => c.user_email?.toLowerCase() === currentUser.email?.toLowerCase()
+      );
+      setCurrentClient(client || null);
+    }
+  }, [currentUser, clients]);
+
+  const isLoading = !currentUser || clientsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar items={navigationItems} isClientPortal />
+        <div className="flex-1 lg:ml-64 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   if (!currentClient) {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar items={navigationItems} isClientPortal />
         <div className="flex-1 lg:ml-64 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-muted-foreground">Loading your portal...</p>
+          <div className="text-center max-w-md p-8">
+            <h2 className="text-xl font-semibold text-foreground mb-2">Portal Not Yet Set Up</h2>
+            <p className="text-muted-foreground">
+              Your account hasn't been linked to a client profile yet. Please contact your agency to get access set up.
+            </p>
           </div>
         </div>
       </div>
