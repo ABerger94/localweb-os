@@ -50,19 +50,24 @@ Deno.serve(async (req) => {
     const generatedLeads = [];
     const industry = targetIndustries[Math.floor(Math.random() * targetIndustries.length)];
     
-    // Use InvokeLLM to generate realistic lead data based on web research
+    // Search for REAL businesses using web search
+    const searchQuery = `${industry} ${primaryLocation} no website phone number address`;
+    
     const llmResponse = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate 3-5 realistic local business leads for ${industry} businesses in ${primaryLocation} that likely don't have websites or have poor online presence. For each business, provide:
-- Business name (realistic sounding)
-- Business type (specific)
-- Location (city/area in ${primaryLocation})
-- Phone number (realistic format)
-- Google rating (1-5, with decimal)
-- Number of reviews (10-200)
-- Why they need a website (specific pain point)
-- Google Maps search URL for the business
+      prompt: `Search the web for REAL ${industry} businesses in ${primaryLocation}. Find actual businesses with their real information. For each business found, extract:
+- REAL business name (exactly as listed)
+- Business type
+- REAL location/city
+- REAL phone number (from their listing)
+- Google rating if available (or mark as "N/A")
+- Number of reviews (or "N/A")
+- Whether they appear to have a website or not
+- Google Maps search URL
 
-Format as JSON array with fields: business_name, business_type, location, phone, google_rating, review_count, pain_point, google_search_url`,
+IMPORTANT: Only return businesses that actually exist. Do NOT make up names, phone numbers, or addresses. If you cannot find real businesses with verifiable information, return an empty list.
+
+Format as JSON array with fields: business_name, business_type, location, phone, google_rating, review_count, has_website, google_search_url, source_url`,
+      add_context_from_internet: true,
       response_json_schema: {
         type: "object",
         properties: {
@@ -71,16 +76,17 @@ Format as JSON array with fields: business_name, business_type, location, phone,
             items: {
               type: "object",
               properties: {
-                business_name: { type: "string" },
+                business_name: { type: "string", description: "Real business name" },
                 business_type: { type: "string" },
-                location: { type: "string" },
-                phone: { type: "string" },
-                google_rating: { type: "number" },
-                review_count: { type: "number" },
-                pain_point: { type: "string" },
-                google_search_url: { type: "string" }
+                location: { type: "string", description: "City/area" },
+                phone: { type: "string", description: "Actual phone number from listing" },
+                google_rating: { type: "number", description: "Rating or 0 if not found" },
+                review_count: { type: "number", description: "Number of reviews or 0" },
+                has_website: { type: "boolean" },
+                google_search_url: { type: "string" },
+                source_url: { type: "string", description: "URL where this info was found" }
               },
-              required: ["business_name", "business_type", "location", "phone", "google_rating", "review_count", "pain_point", "google_search_url"]
+              required: ["business_name", "business_type", "location", "phone", "google_search_url"]
             }
           }
         },
@@ -90,7 +96,7 @@ Format as JSON array with fields: business_name, business_type, location, phone,
 
     const leads = llmResponse.leads || [];
 
-    // Create Client records for each lead
+    // Create Client records for each REAL lead
     for (const lead of leads) {
       const clientData = {
         business_name: lead.business_name,
@@ -99,10 +105,10 @@ Format as JSON array with fields: business_name, business_type, location, phone,
         contact_email: `contact@${lead.business_name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
         phone: lead.phone,
         location: lead.location,
-        google_rating: lead.google_rating,
+        google_rating: lead.google_rating || 0,
         status: "Lead",
         pipeline_stage: "Prospect",
-        notes: `LEAD GENERATED AUTOMATICALLY\n\nGoogle Search: ${lead.google_search_url}\n\nPain Point: ${lead.pain_point}\n\nGoogle Rating: ${lead.google_rating}/5 (${lead.review_count} reviews)\n\nOutreach Angle: Focus on their lack of web presence and how competitors with websites are capturing their potential customers. Mention specific improvements like online booking, menu/services display, customer testimonials, etc.`
+        notes: `REAL LEAD FROM WEB SEARCH\n\nGoogle Search: ${lead.google_search_url}\nSource: ${lead.source_url || 'Web search'}\nHas Website: ${lead.has_website ? 'Yes' : 'No'}\n\nGoogle Rating: ${lead.google_rating || 'N/A'}/5 (${lead.review_count || 'N/A'} reviews)\n\nPhone: ${lead.phone}\n\nOutreach Angle: ${lead.has_website ? 'Website exists but may need improvements' : 'No website - major opportunity for web development'}`
       };
 
       const createdClient = await base44.asServiceRole.entities.Client.create(clientData);
