@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ClientProfileSetup from "@/components/client/ClientProfileSetup";
 
 const navigationItems = [
   { label: "Dashboard", href: "/client-portal" },
@@ -116,14 +117,10 @@ export default function ClientOnboarding() {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar items={navigationItems} isClientPortal />
-        <div className="flex-1 lg:ml-64 flex items-center justify-center p-6">
-          <div className="text-center max-w-md p-8">
-            <h2 className="text-xl font-semibold mb-2">Setting Up Your Account</h2>
-            <p className="text-muted-foreground mb-4">
-              Your account is not yet linked to a client profile. Your agency will set this up shortly — please check back soon or contact your account manager.
-            </p>
-          </div>
-        </div>
+        <ClientProfileSetup
+          currentUser={currentUser}
+          onCreated={(client) => setCurrentClient(client)}
+        />
       </div>
     );
   }
