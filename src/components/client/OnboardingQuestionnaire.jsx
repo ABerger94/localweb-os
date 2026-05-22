@@ -24,7 +24,7 @@ export default function OnboardingQuestionnaire({ clientId, existingResponse, on
     primary_goal: existingResponse?.primary_goal || "",
     primary_goal_other: existingResponse?.primary_goal_other || "",
     timeline: existingResponse?.timeline || "",
-    budget_range: existingResponse?.budget_range || "",
+    budget_range: existingResponse?.budget_range || 50,
     competitor_names: existingResponse?.competitor_names || "",
     design_style: existingResponse?.design_style || "",
     social_media_handles: existingResponse?.social_media_handles || "",
@@ -35,22 +35,25 @@ export default function OnboardingQuestionnaire({ clientId, existingResponse, on
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const data = { client_id: clientId, ...form };
+      const data = { client_id: clientId, ...form, budget_range: Number(form.budget_range) };
       if (existingResponse?.id) {
-        await base44.entities.OnboardingQuestionnaire.update(existingResponse.id, data);
+        return base44.entities.OnboardingQuestionnaire.update(existingResponse.id, data);
       } else {
-        await base44.entities.OnboardingQuestionnaire.create(data);
+        return base44.entities.OnboardingQuestionnaire.create(data);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["onboarding-questionnaire"] });
       onComplete();
     },
+    onError: (err) => {
+      console.error("Questionnaire save failed:", err);
+    },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutation.mutate();
+    if (!mutation.isPending) mutation.mutate();
   };
 
   const SelectField = ({ label, fieldKey, options }) => (
@@ -117,14 +120,14 @@ export default function OnboardingQuestionnaire({ clientId, existingResponse, on
         <Label className="text-sm font-medium">Monthly budget range</Label>
         <div className="flex items-center gap-4">
           <Slider
-            value={[form.budget_range ? parseInt(form.budget_range) : 50]}
-            onValueChange={(value) => set("budget_range", value[0].toString())}
+            value={[Number(form.budget_range) || 50]}
+            onValueChange={(value) => set("budget_range", value[0])}
             min={50}
             max={500}
             step={50}
             className="flex-1"
           />
-          <span className="text-sm font-semibold min-w-fit">${form.budget_range || 50}{form.budget_range >= 500 ? "+" : ""}/mo</span>
+          <span className="text-sm font-semibold min-w-fit">${Number(form.budget_range) || 50}{Number(form.budget_range) >= 500 ? "+" : ""}/mo</span>
         </div>
       </div>
 
