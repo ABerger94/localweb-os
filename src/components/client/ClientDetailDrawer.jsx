@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle, Globe, Target, Users, Palette, FileText, Mail, Phone, Pencil } from "lucide-react";
 import ClientEditModal from "@/components/client/ClientEditModal.jsx";
 import WelcomeCallScheduler from "@/components/client/WelcomeCallScheduler.jsx";
+import SendEmailModal from "@/components/client/SendEmailModal.jsx";
 
 function Section({ title, icon: SectionIcon, children }) {
   return (
@@ -33,14 +34,7 @@ function InfoRow({ label, value }) {
 export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
   const [callModalOpen, setCallModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-
-  const handleDraftEmail = () => {
-    const subject = encodeURIComponent(`Welcome to Local Web Connect, ${client?.business_name || ""}!`);
-    const body = encodeURIComponent(
-      `Hi ${client?.contact_name || "there"},\n\nWelcome aboard! We're thrilled to have ${client?.business_name || "your business"} as a client.\n\nWe'll be in touch shortly to get started.\n\nBest regards,\nLocal Web Connect`
-    );
-    window.location.href = `mailto:${client?.contact_email}?subject=${subject}&body=${body}`;
-  };
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
 
   const { data: questionnaires = [] } = useQuery({
     queryKey: ["onboarding-questionnaire"],
@@ -75,7 +69,7 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
           size="sm" 
           variant={checklist.welcome_email_sent ? "ghost" : "outline"} 
           className="h-5 text-xs px-2 py-0 ml-auto" 
-          onClick={handleDraftEmail}
+          onClick={() => setEmailModalOpen(true)}
         >
           <Mail className="w-3 h-3 mr-1" /> 
           {checklist.welcome_email_sent ? "Sent" : "Draft Email"}
@@ -229,6 +223,13 @@ export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
       <WelcomeCallScheduler
         open={callModalOpen}
         onClose={() => setCallModalOpen(false)}
+        client={client}
+        checklistId={checklist?.id}
+      />
+
+      <SendEmailModal
+        open={emailModalOpen}
+        onClose={() => setEmailModalOpen(false)}
         client={client}
         checklistId={checklist?.id}
       />
