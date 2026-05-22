@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { base44 } from "@/api/base44Client";
 
 export default function Sidebar({ items, isClientPortal = false }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -74,8 +75,15 @@ export default function Sidebar({ items, isClientPortal = false }) {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-4 border-t border-sidebar-border space-y-2">
           <p className="text-xs text-sidebar-foreground/60">LocalFlow Pro</p>
+          <button
+            onClick={() => base44.auth.logout()}
+            className="flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors w-full"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Log out
+          </button>
         </div>
       </div>
 
