@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import ClientDetailDrawer from "@/components/client/ClientDetailDrawer";
+import ClientEditModal from "@/components/client/ClientEditModal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: null },
@@ -17,15 +18,25 @@ const navigationItems = [
   { label: "Projects", href: "/projects", icon: null },
   { label: "Invoices", href: "/invoices", icon: null },
   { label: "Retainers", href: "/retainers", icon: null },
+  { label: "Support Tickets", href: "/support", icon: null },
   { label: "Designer", href: "/designer", icon: null },
 ];
 
 export default function Clients() {
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState(null);
+  const [editClient, setEditClient] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list(),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Client.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["clients"] }),
   });
 
   const filteredClients = clients.filter(
@@ -33,6 +44,10 @@ export default function Clients() {
       c.business_name.toLowerCase().includes(search.toLowerCase()) ||
       c.contact_email.toLowerCase().includes(search.toLowerCase())
   );
+
+  const openNew = () => { setEditClient(null); setEditModalOpen(true); };
+  const openEdit = (e, client) => { e.stopPropagation(); setEditClient(client); setEditModalOpen(true); };
+  const handleDelete = (e, id) => { e.stopPropagation(); if (confirm("Delete this client?")) deleteMutation.mutate(id); };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -45,6 +60,7 @@ export default function Clients() {
             description="Manage your client relationships"
             actionLabel="New Client"
             actionIcon={Plus}
+            action={openNew}
           />
 
           <Card className="mb-6">
@@ -66,9 +82,7 @@ export default function Clients() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {client.business_name}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-foreground">{client.business_name}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       {client.contact_name} • {client.contact_email}
                     </p>
@@ -78,14 +92,19 @@ export default function Clients() {
                       {client.location && <span className="text-xs text-muted-foreground">{client.location}</span>}
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={(e) => openEdit(e, client)}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive"
+                      onClick={(e) => handleDelete(e, client.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
@@ -95,6 +114,13 @@ export default function Clients() {
             client={selectedClient}
             open={!!selectedClient}
             onClose={() => setSelectedClient(null)}
+            onEdit={(c) => { setSelectedClient(null); setEditClient(c); setEditModalOpen(true); }}
+          />
+
+          <ClientEditModal
+            client={editClient}
+            open={editModalOpen}
+            onClose={() => setEditModalOpen(false)}
           />
         </div>
       </div>

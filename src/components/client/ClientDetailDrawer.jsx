@@ -4,9 +4,10 @@ import { base44 } from "@/api/base44Client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Circle, Globe, Target, Users, Palette, FileText, Mail, Phone } from "lucide-react";
+import { CheckCircle2, Circle, Globe, Target, Users, Palette, FileText, Mail, Phone, Pencil } from "lucide-react";
 import SendEmailModal from "@/components/client/SendEmailModal.jsx";
 import ScheduleCallModal from "@/components/client/ScheduleCallModal.jsx";
+import ClientEditModal from "@/components/client/ClientEditModal.jsx";
 
 function Section({ title, icon: SectionIcon, children }) {
   return (
@@ -30,7 +31,7 @@ function InfoRow({ label, value }) {
   );
 }
 
-export default function ClientDetailDrawer({ client, open, onClose }) {
+export default function ClientDetailDrawer({ client, open, onClose, onEdit }) {
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [callModalOpen, setCallModalOpen] = useState(false);
 
@@ -96,7 +97,14 @@ export default function ClientDetailDrawer({ client, open, onClose }) {
       <Sheet open={open} onOpenChange={onClose}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader className="mb-6">
-            <SheetTitle className="text-xl">{client.business_name}</SheetTitle>
+            <div className="flex items-start justify-between gap-2">
+              <SheetTitle className="text-xl">{client.business_name}</SheetTitle>
+              {onEdit && (
+                <Button size="sm" variant="outline" className="shrink-0" onClick={() => onEdit(client)}>
+                  <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
+                </Button>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">{client.contact_name} · {client.contact_email}</p>
             <div className="flex gap-2 flex-wrap mt-1">
               <Badge variant="outline">{client.status}</Badge>
