@@ -148,12 +148,13 @@ export default function ClientOnboarding() {
   const handleStrategyMeetingSubmit = async (e) => {
     e.preventDefault();
     if (!meetingDateTime) return;
-    // Save the requested meeting time into client notes
-    const noteEntry = `Strategy Meeting Request: ${new Date(meetingDateTime).toLocaleString()}${meetingNotes ? ` — ${meetingNotes}` : ""}`;
-    await base44.entities.Client.update(currentClient.id, {
-      notes: [currentClient.notes, noteEntry].filter(Boolean).join("\n\n"),
-    });
-    await mutation.mutateAsync({ key: "strategy_meeting_held", value: true });
+    // Save the requested meeting time to checklist — do NOT check off strategy_meeting_held (admin does that)
+    if (checklist) {
+      await base44.entities.OnboardingChecklist.update(checklist.id, { strategy_meeting_date: meetingDateTime });
+    } else if (currentClient) {
+      await base44.entities.OnboardingChecklist.create({ client_id: currentClient.id, strategy_meeting_date: meetingDateTime });
+    }
+    queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] });
     setMeetingDateTime("");
     setMeetingNotes("");
   };
@@ -448,29 +449,39 @@ export default function ClientOnboarding() {
                                 )}
                               </div>
                             ) : item.form === "strategyMeeting" ? (
-                              <form onSubmit={handleStrategyMeetingSubmit} className="mt-3 ml-8 space-y-3">
-                                <div className="space-y-2">
-                                  <p className="text-xs text-muted-foreground">Pick your preferred date & time for the strategy session:</p>
-                                  <Input
-                                    type="datetime-local"
-                                    value={meetingDateTime}
-                                    onChange={(e) => setMeetingDateTime(e.target.value)}
-                                    min={new Date().toISOString().slice(0, 16)}
-                                    required
-                                    className="text-sm"
-                                  />
-                                  <Textarea
-                                    placeholder="Any topics you'd like to cover or questions you have..."
-                                    value={meetingNotes}
-                                    onChange={(e) => setMeetingNotes(e.target.value)}
-                                    className="text-sm h-20"
-                                  />
+                              checklist?.strategy_meeting_date ? (
+                                <div className="mt-3 ml-8 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                                  <p className="text-xs font-medium text-blue-800">Meeting Requested</p>
+                                  <p className="text-sm text-blue-700 mt-0.5">
+                                    {new Date(checklist.strategy_meeting_date).toLocaleString()}
+                                  </p>
+                                  <p className="text-xs text-blue-600 mt-1">Your agency will confirm this time shortly.</p>
                                 </div>
-                                <Button size="sm" type="submit" className="gap-2">
-                                  <CalendarClock className="w-4 h-4" />
-                                  Request Meeting
-                                </Button>
-                              </form>
+                              ) : (
+                                <form onSubmit={handleStrategyMeetingSubmit} className="mt-3 ml-8 space-y-3">
+                                  <div className="space-y-2">
+                                    <p className="text-xs text-muted-foreground">Pick your preferred date & time for the strategy session:</p>
+                                    <Input
+                                      type="datetime-local"
+                                      value={meetingDateTime}
+                                      onChange={(e) => setMeetingDateTime(e.target.value)}
+                                      min={new Date().toISOString().slice(0, 16)}
+                                      required
+                                      className="text-sm"
+                                    />
+                                    <Textarea
+                                      placeholder="Any topics you'd like to cover or questions you have..."
+                                      value={meetingNotes}
+                                      onChange={(e) => setMeetingNotes(e.target.value)}
+                                      className="text-sm h-20"
+                                    />
+                                  </div>
+                                  <Button size="sm" type="submit" className="gap-2">
+                                    <CalendarClock className="w-4 h-4" />
+                                    Request Meeting
+                                  </Button>
+                                </form>
+                              )
                             ) : (
                               <form
                                 onSubmit={(e) => {

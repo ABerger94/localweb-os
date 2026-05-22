@@ -41,6 +41,10 @@
       "default": false,
       "description": "Strategy planning meeting completed"
     },
+    "strategy_meeting_date": {
+      "type": "string",
+      "description": "Client-requested date/time for strategy meeting (ISO string)"
+    },
     "project_plan_created": {
       "type": "boolean",
       "default": false,

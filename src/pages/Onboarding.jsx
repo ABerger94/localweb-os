@@ -81,6 +81,10 @@ function getActiveStage(checklist) {
 }
 
 function ClientOnboardingCard({ client, checklist, onToggle }) {
+  // Format strategy meeting date for display
+  const strategyMeetingDate = checklist?.strategy_meeting_date
+    ? new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+    : null;
   const [expanded, setExpanded] = useState(false);
   const progress = getProgress(checklist);
   const activeStageIdx = getActiveStage(checklist);
@@ -137,9 +141,14 @@ function ClientOnboardingCard({ client, checklist, onToggle }) {
                           ) : (
                             <Circle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0 group-hover:text-primary transition-colors" />
                           )}
-                          <span className={cn("text-xs leading-tight", done ? "line-through text-muted-foreground" : "text-foreground")}>
-                            {item.label}
-                          </span>
+                          <div className="flex flex-col gap-0.5">
+                            <span className={cn("text-xs leading-tight", done ? "line-through text-muted-foreground" : "text-foreground")}>
+                              {item.label}
+                            </span>
+                            {item.key === "strategy_meeting_held" && strategyMeetingDate && (
+                              <span className="text-xs text-primary font-medium">📅 {strategyMeetingDate}</span>
+                            )}
+                          </div>
                         </button>
                       );
                     })}
