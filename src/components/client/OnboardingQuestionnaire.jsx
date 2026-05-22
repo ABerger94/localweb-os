@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 
 const SELECT_OPTIONS = {
   primary_goal: ["Get more leads", "Increase online sales", "Build brand awareness", "Improve online reputation", "Other"],
@@ -111,7 +112,22 @@ export default function OnboardingQuestionnaire({ clientId, existingResponse, on
       )}
 
       <SelectField label="Desired timeline" fieldKey="timeline" options={SELECT_OPTIONS.timeline} />
-      <SelectField label="Monthly budget range" fieldKey="budget_range" options={SELECT_OPTIONS.budget_range} />
+      
+      <div className="space-y-1.5">
+        <Label className="text-sm font-medium">Monthly budget range</Label>
+        <div className="flex items-center gap-4">
+          <Slider
+            value={[form.budget_range ? parseInt(form.budget_range) : 50]}
+            onValueChange={(value) => set("budget_range", value[0].toString())}
+            min={50}
+            max={500}
+            step={50}
+            className="flex-1"
+          />
+          <span className="text-sm font-semibold min-w-fit">${form.budget_range || 50}{form.budget_range >= 500 ? "+" : ""}/mo</span>
+        </div>
+      </div>
+
       <SelectField label="Preferred design style" fieldKey="design_style" options={SELECT_OPTIONS.design_style} />
 
       <div className="space-y-1.5">

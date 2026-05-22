@@ -49,15 +49,8 @@
       "description": "Desired project timeline"
     },
     "budget_range": {
-      "type": "string",
-      "enum": [
-        "Under $500/mo",
-        "$500-$1,000/mo",
-        "$1,000-$2,500/mo",
-        "$2,500+/mo",
-        "Not sure yet"
-      ],
-      "description": "Monthly budget range"
+      "type": "number",
+      "description": "Monthly budget in dollars (50-500+)"
     },
     "competitor_names": {
       "type": "string",
