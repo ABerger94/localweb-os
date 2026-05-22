@@ -17,15 +17,7 @@ import ClientPortal from '@/pages/ClientPortal';
 import ClientPortalProjects from '@/pages/ClientPortalProjects';
 import ClientPortalInvoices from '@/pages/ClientPortalInvoices';
 
-const ADMIN_EMAIL = 'Alek.n.berger@gmail.com';
 
-const AdminRoute = ({ children }) => {
-  const { user } = useAuth();
-  if (user?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-    return <Navigate to="/client-portal" replace />;
-  }
-  return children;
-};
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
@@ -51,7 +43,7 @@ const AuthenticatedApp = () => {
   }
 
   // Redirect non-admin users straight to client portal
-  if (user && user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+  if (user && user.role === 'user') {
     return (
       <Routes>
         <Route path="/client-portal" element={<ClientPortal />} />
