@@ -64,6 +64,18 @@ export default function UpcomingEventsList({ events }) {
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {new Date(event.date).toLocaleDateString("default", { month: "short", day: "numeric" })}
                     </p>
+                    {(() => {
+                      const eventDate = new Date(event.date);
+                      const hasTime = eventDate.getHours() !== 0 || eventDate.getMinutes() !== 0;
+                      if (hasTime) {
+                        return (
+                          <p className="text-xs font-medium text-primary mt-0.5">
+                            🕐 {eventDate.toLocaleTimeString("default", { hour: "numeric", minute: "2-digit" })}
+                          </p>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                 </div>
               );

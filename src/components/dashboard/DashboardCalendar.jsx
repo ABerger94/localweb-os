@@ -130,15 +130,24 @@ export default function DashboardCalendar({ events }) {
             {selectedEvents.length === 0 ? (
               <p className="text-xs text-muted-foreground">No events</p>
             ) : (
-              selectedEvents.map((ev, idx) => (
-                <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-muted/50">
-                  <span className={cn("w-2 h-2 rounded-full mt-1 shrink-0", EVENT_COLORS[ev.type] || "bg-gray-400")} />
-                  <div>
-                    <p className="text-xs font-medium text-foreground">{ev.title}</p>
-                    {ev.clientName && <p className="text-xs text-muted-foreground">{ev.clientName}</p>}
+              selectedEvents.map((ev, idx) => {
+                const eventDate = new Date(ev.date);
+                const hasTime = eventDate.getHours() !== 0 || eventDate.getMinutes() !== 0;
+                return (
+                  <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-muted/50">
+                    <span className={cn("w-2 h-2 rounded-full mt-1 shrink-0", EVENT_COLORS[ev.type] || "bg-gray-400")} />
+                    <div>
+                      <p className="text-xs font-medium text-foreground">{ev.title}</p>
+                      {ev.clientName && <p className="text-xs text-muted-foreground">{ev.clientName}</p>}
+                      {hasTime && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          🕐 {eventDate.toLocaleTimeString("default", { hour: "numeric", minute: "2-digit" })}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
