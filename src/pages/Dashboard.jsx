@@ -21,6 +21,7 @@ const navigationItems = [
   { label: "Projects", href: "/projects", icon: null },
   { label: "Invoices", href: "/invoices", icon: null },
   { label: "Retainers", href: "/retainers", icon: null },
+  { label: "Support Tickets", href: "/support", icon: null },
   { label: "Designer", href: "/designer", icon: null },
 ];
 
