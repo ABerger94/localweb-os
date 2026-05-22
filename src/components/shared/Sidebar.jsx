@@ -88,8 +88,6 @@ export default function Sidebar({ items, isClientPortal = false }) {
         </div>
       </aside>
 
-      {/* Main Content Shift */}
-      <div className="lg:ml-64" />
     </>
   );
 }
