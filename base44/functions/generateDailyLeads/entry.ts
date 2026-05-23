@@ -54,17 +54,26 @@ Deno.serve(async (req) => {
     const searchQuery = `${industry} ${primaryLocation} no website phone number address`;
     
     const llmResponse = await base44.integrations.Core.InvokeLLM({
-      prompt: `Search the web for REAL ${industry} businesses in ${primaryLocation}. Find actual businesses with their real information. For each business found, extract:
+      prompt: `Search the web for REAL ${industry} businesses in ${primaryLocation} that DO NOT have a website. These are prime leads for a web design agency.
+
+Look specifically for businesses that:
+- Appear only on Google Maps, Yelp, or Facebook but have no dedicated website
+- Have a Google listing that says "No website" or only links to a social media profile
+- Are listed on directories but have no linked website URL
+
+For each business found WITHOUT a website, extract:
 - REAL business name (exactly as listed)
 - Business type
 - REAL location/city
 - REAL phone number (from their listing)
-- Google rating if available (or mark as "N/A")
-- Number of reviews (or "N/A")
-- Whether they appear to have a website or not
-- Google Maps search URL
+- Google rating if available
+- Number of reviews
+- Google Maps or directory search URL
 
-IMPORTANT: Only return businesses that actually exist. Do NOT make up names, phone numbers, or addresses. If you cannot find real businesses with verifiable information, return an empty list.
+IMPORTANT: 
+1. Only return businesses that DO NOT have their own website. Skip any business that has a real website.
+2. Only return businesses that actually exist. Do NOT make up names, phone numbers, or addresses.
+3. If you cannot find real businesses without websites, return an empty list.
 
 Format as JSON array with fields: business_name, business_type, location, phone, google_rating, review_count, has_website, google_search_url, source_url`,
       add_context_from_internet: true,
