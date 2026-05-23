@@ -30,6 +30,19 @@ import QRCodePage from '@/pages/QRCode';
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
 
+  // Always render the public landing page without any auth check
+  if (window.location.pathname === '/client-portal') {
+    if (user) {
+      return <Navigate to="/client-portal/dashboard" replace />;
+    }
+    return (
+      <Routes>
+        <Route path="/client-portal" element={<ClientPortalLanding />} />
+        <Route path="*" element={<Navigate to="/client-portal" replace />} />
+      </Routes>
+    );
+  }
+
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -44,22 +57,9 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Allow the client portal landing page to be public
-      if (window.location.pathname !== '/client-portal') {
-        navigateToLogin();
-        return null;
-      }
+      navigateToLogin();
+      return null;
     }
-  }
-
-  // Unauthenticated user on public landing page — just render routes
-  if (!user && window.location.pathname === '/client-portal') {
-    return (
-      <Routes>
-        <Route path="/client-portal" element={<ClientPortalLanding />} />
-        <Route path="*" element={<Navigate to="/client-portal" replace />} />
-      </Routes>
-    );
   }
 
   // Redirect non-admin users straight to client portal
