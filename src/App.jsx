@@ -44,10 +44,22 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
+      // Allow the client portal landing page to be public
+      if (window.location.pathname !== '/client-portal') {
+        navigateToLogin();
+        return null;
+      }
     }
+  }
+
+  // Unauthenticated user on public landing page — just render routes
+  if (!user && window.location.pathname === '/client-portal') {
+    return (
+      <Routes>
+        <Route path="/client-portal" element={<ClientPortalLanding />} />
+        <Route path="*" element={<Navigate to="/client-portal" replace />} />
+      </Routes>
+    );
   }
 
   // Redirect non-admin users straight to client portal
