@@ -14,6 +14,7 @@ import Invoices from '@/pages/Invoices.jsx';
 import Retainers from '@/pages/Retainers.jsx';
 import Designer from '@/pages/Designer';
 import ClientPortal from '@/pages/ClientPortal';
+import ClientPortalLanding from '@/pages/ClientPortalLanding';
 import ClientPortalProjects from '@/pages/ClientPortalProjects';
 import ClientPortalInvoices from '@/pages/ClientPortalInvoices';
 import Onboarding from '@/pages/Onboarding';
@@ -53,7 +54,8 @@ const AuthenticatedApp = () => {
   if (user && user.role === 'user') {
     return (
       <Routes>
-        <Route path="/client-portal" element={<ClientPortal />} />
+        <Route path="/client-portal" element={<ClientPortalLanding />} />
+        <Route path="/client-portal/dashboard" element={<ClientPortal />} />
         <Route path="/client-portal/projects" element={<ClientPortalProjects />} />
         <Route path="/client-portal/invoices" element={<ClientPortalInvoices />} />
         <Route path="/client-portal/onboarding" element={<ClientOnboarding />} />
@@ -80,7 +82,8 @@ const AuthenticatedApp = () => {
       <Route path="/qr-code" element={<QRCodePage />} />
       
       {/* Client Portal Routes */}
-      <Route path="/client-portal" element={<ClientPortal />} />
+      <Route path="/client-portal" element={<ClientPortalLanding />} />
+      <Route path="/client-portal/dashboard" element={<ClientPortal />} />
       <Route path="/client-portal/projects" element={<ClientPortalProjects />} />
       <Route path="/client-portal/invoices" element={<ClientPortalInvoices />} />
       <Route path="/client-portal/retainers" element={<ClientPortalRetainers />} />
