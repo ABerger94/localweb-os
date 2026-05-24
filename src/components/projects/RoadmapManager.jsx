@@ -75,6 +75,9 @@ export default function RoadmapManager({ roadmap = [], onChange }) {
     onChange(updated);
     setShowForm(false);
     setFormData({ title: "", description: "", due_date: "", status: "Planned" });
+    
+    // Prevent form submission from bubbling up to parent form
+    return false;
   };
 
   const handleCancel = (e) => {
