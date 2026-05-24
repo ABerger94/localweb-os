@@ -107,7 +107,7 @@ export default function RoadmapManager({ roadmap = [], onChange }) {
       {showForm && (
         <Card onClick={(e) => e.stopPropagation()}>
           <CardContent className="pt-4">
-            <form onSubmit={handleSave} className="space-y-3" onClick={(e) => e.stopPropagation()}>
+            <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
               <div className="space-y-1">
                 <Label>Title *</Label>
                 <Input
@@ -160,14 +160,14 @@ export default function RoadmapManager({ roadmap = [], onChange }) {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button type="submit" size="sm">
+                <Button size="sm" onClick={handleSave}>
                   {editingId ? "Update" : "Add"} Milestone
                 </Button>
-                <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
+                <Button variant="outline" size="sm" onClick={handleCancel}>
                   Cancel
                 </Button>
               </div>
-            </form>
+            </div>
           </CardContent>
         </Card>
       )}
