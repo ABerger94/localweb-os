@@ -77,7 +77,7 @@ export default function RoadmapManager({ roadmap = [], onChange }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Project Roadmap</h3>
-        <Button size="sm" onClick={() => setShowForm(true)}>
+        <Button size="sm" onClick={(e) => { e.stopPropagation(); setShowForm(true); }}>
           <Plus className="w-4 h-4 mr-1" /> Add Milestone
         </Button>
       </div>
