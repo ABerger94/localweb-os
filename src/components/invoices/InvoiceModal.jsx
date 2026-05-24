@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +26,16 @@ export default function InvoiceModal({ open, onClose, clients, invoice = null })
   const [form, setForm] = useState(invoice || EMPTY);
   const [uploading, setUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState(invoice?.file_url ? "Existing file" : "");
+
+  useEffect(() => {
+    if (invoice) {
+      setForm(invoice);
+      setUploadedFileName(invoice.file_url ? "Existing file" : "");
+    } else {
+      setForm(EMPTY);
+      setUploadedFileName("");
+    }
+  }, [invoice, open]);
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
