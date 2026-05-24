@@ -65,14 +65,18 @@ Deno.serve(async (req) => {
         body: `Hi ${client.contact_name || 'there'},\n\nGreat news! Your ${meetingLabel.toLowerCase()} has been confirmed for:\n\n📅 ${new Date(meetingDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\nWe're looking forward to speaking with you!\n\nBest regards,\nLocal Web Connect`,
       });
     } else {
-      // Client confirmed - notify agency (use service role to list admins)
-      const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
-      for (const admin of admins) {
-        await base44.integrations.Core.SendEmail({
-          to: admin.email,
-          subject: `${meetingLabel} Confirmed - ${client.business_name}`,
-          body: `Hi ${admin.full_name || 'there'},\n\n${client.contact_name} has confirmed the ${meetingLabel.toLowerCase()} for:\n\n📅 ${new Date(meetingDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\nThe onboarding checklist has been updated.\n\nBest regards,\nLocal Web Connect`,
-        });
+      // Client confirmed - notify agency
+      try {
+        const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+        for (const admin of admins) {
+          await base44.integrations.Core.SendEmail({
+            to: admin.email,
+            subject: `${meetingLabel} Confirmed - ${client.business_name}`,
+            body: `Hi ${admin.full_name || 'there'},\n\n${client.contact_name} has confirmed the ${meetingLabel.toLowerCase()} for:\n\n📅 ${new Date(meetingDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\nThe onboarding checklist has been updated.\n\nBest regards,\nLocal Web Connect`,
+          });
+        }
+      } catch (adminError) {
+        console.error('Failed to notify admins:', adminError.message);
       }
     }
 
