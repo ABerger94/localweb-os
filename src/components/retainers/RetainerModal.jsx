@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +26,16 @@ export default function RetainerModal({ open, onClose, clients, retainer = null 
   const [form, setForm] = useState(retainer || EMPTY);
   const [uploading, setUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState(retainer?.agreement_file_url ? "Existing agreement" : "");
+
+  useEffect(() => {
+    if (retainer) {
+      setForm(retainer);
+      setUploadedFileName(retainer.agreement_file_url ? "Existing agreement" : "");
+    } else {
+      setForm(EMPTY);
+      setUploadedFileName("");
+    }
+  }, [retainer, open]);
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
