@@ -15,6 +15,7 @@ const STATUSES = ["Not Started", "In Progress", "Review", "Approved", "Delivered
 export default function ProjectModal({ project, clients, open, onClose }) {
   const qc = useQueryClient();
   const isNew = !project?.id;
+  const [activeTab, setActiveTab] = useState("details");
 
   const [form, setForm] = useState({
     client_id: "",
@@ -53,6 +54,12 @@ export default function ProjectModal({ project, clients, open, onClose }) {
       setForm({ client_id: "", project_name: "", description: "", scope_description: "", due_date: "", deliverable_url: "", status: "Not Started", feedback: "", roadmap: [] });
     }
   }, [project]);
+
+  useEffect(() => {
+    if (!open) {
+      setActiveTab("details");
+    }
+  }, [open]);
 
   const mutation = useMutation({
     mutationFn: (data) =>
@@ -100,7 +107,7 @@ export default function ProjectModal({ project, clients, open, onClose }) {
             <Input value={form.project_name} onChange={set("project_name")} required />
           </div>
 
-          <Tabs defaultValue="details" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
