@@ -16,7 +16,6 @@ export default function ProjectModal({ project, clients, open, onClose }) {
   const qc = useQueryClient();
   const isNew = !project?.id;
   const [activeTab, setActiveTab] = useState("details");
-  const [isClosing, setIsClosing] = useState(false);
 
   const [form, setForm] = useState({
     client_id: "",
@@ -86,18 +85,20 @@ export default function ProjectModal({ project, clients, open, onClose }) {
     mutation.mutate(submitData);
   };
 
+  // Only allow closing via explicit user action, not prop changes
+  const handleOpenChange = (newOpen) => {
+    if (!newOpen) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => { 
-      if (newOpen === false) {
-        setIsClosing(true);
-        onClose();
-      }
-    }}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>{isNew ? "New Project" : `Edit — ${project?.project_name}`}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2" onClick={(e) => e.stopPropagation()}>
           <div className="space-y-1">
             <Label>Client *</Label>
             <Select value={form.client_id} onValueChange={(v) => setForm((f) => ({ ...f, client_id: v }))}>
