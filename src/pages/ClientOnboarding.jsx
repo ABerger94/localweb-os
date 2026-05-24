@@ -209,6 +209,7 @@ export default function ClientOnboarding() {
           datetime: meetingDateTime,
           notes: meetingNotes,
           proposedBy: 'client',
+          meetingType: 'strategy',
         });
       } else if (currentClient) {
         // Create checklist first if it doesn't exist
@@ -230,6 +231,7 @@ export default function ClientOnboarding() {
           datetime: meetingDateTime,
           notes: meetingNotes,
           proposedBy: 'client',
+          meetingType: 'strategy',
         });
       }
       queryClient.invalidateQueries({ queryKey: ["onboarding-checklists"] });

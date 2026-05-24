@@ -83,6 +83,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ success: true, history });
   } catch (error) {
+    console.error('proposeMeetingTime error:', error.message, error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
