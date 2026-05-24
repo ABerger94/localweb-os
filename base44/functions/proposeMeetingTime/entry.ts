@@ -60,22 +60,30 @@ Deno.serve(async (req) => {
     const meetingLabel = meetingType === 'welcome' ? 'Welcome Call' : 'Strategy Meeting';
     if (proposedBy === 'agency') {
       // Agency proposed - notify client
-      await base44.integrations.Core.SendEmail({
-        to: client.contact_email,
-        subject: `${meetingLabel} - New Time Proposed`,
-        body: `Hi ${client.contact_name || 'there'},\n\nYour agency has proposed a new time for your ${meetingLabel.toLowerCase()}:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Notes: ${notes}\n\n` : ''}Please log into your client portal to confirm this time or suggest an alternative.\n\nBest regards,\nLocal Web Connect`,
-      });
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: client.contact_email,
+          subject: `${meetingLabel} - New Time Proposed`,
+          body: `Hi ${client.contact_name || 'there'},\n\nYour agency has proposed a new time for your ${meetingLabel.toLowerCase()}:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Notes: ${notes}\n\n` : ''}Please log into your client portal to confirm this time or suggest an alternative.\n\nBest regards,\nLocal Web Connect`,
+        });
+      } catch (emailError) {
+        console.error('Failed to send email to client:', emailError.message);
+      }
     } else {
       // Client proposed - notify agency admin (only if we have admin access)
       if (user?.role === 'admin') {
         try {
           const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
           for (const admin of admins) {
-            await base44.integrations.Core.SendEmail({
-              to: admin.email,
-              subject: `${meetingLabel} Request - ${client.business_name}`,
-              body: `Hi ${admin.full_name || 'there'},\n\n${client.contact_name} has requested a ${meetingLabel.toLowerCase()} time:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Client notes: ${notes}\n\n` : ''}Log into the dashboard to confirm or suggest a new time.\n\nBest regards,\nLocal Web Connect`,
-            });
+            try {
+              await base44.integrations.Core.SendEmail({
+                to: admin.email,
+                subject: `${meetingLabel} Request - ${client.business_name}`,
+                body: `Hi ${admin.full_name || 'there'},\n\n${client.contact_name} has requested a ${meetingLabel.toLowerCase()} time:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Client notes: ${notes}\n\n` : ''}Log into the dashboard to confirm or suggest a new time.\n\nBest regards,\nLocal Web Connect`,
+              });
+            } catch (adminEmailError) {
+              console.error(`Failed to send email to admin ${admin.email}:`, adminEmailError.message);
+            }
           }
         } catch (adminError) {
           console.error('Failed to notify admins:', adminError.message);
