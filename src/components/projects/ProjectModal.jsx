@@ -16,6 +16,7 @@ export default function ProjectModal({ project, clients, open, onClose }) {
   const qc = useQueryClient();
   const isNew = !project?.id;
   const [activeTab, setActiveTab] = useState("details");
+  const [isClosing, setIsClosing] = useState(false);
 
   const [form, setForm] = useState({
     client_id: "",
@@ -86,7 +87,12 @@ export default function ProjectModal({ project, clients, open, onClose }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => { if (!newOpen) onClose(); }}>
+    <Dialog open={open} onOpenChange={(newOpen) => { 
+      if (newOpen === false) {
+        setIsClosing(true);
+        onClose();
+      }
+    }}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isNew ? "New Project" : `Edit — ${project?.project_name}`}</DialogTitle>

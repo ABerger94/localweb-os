@@ -83,9 +83,9 @@ export default function RoadmapManager({ roadmap = [], onChange }) {
       </div>
 
       {showForm && (
-        <Card>
-          <CardContent className="pt-4 space-y-3">
-            <div className="space-y-1">
+        <Card onClick={(e) => e.stopPropagation()}>
+          <CardContent className="pt-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
               <Label>Title *</Label>
               <Input
                 value={newMilestone.title}
