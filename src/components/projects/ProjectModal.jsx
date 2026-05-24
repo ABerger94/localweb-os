@@ -52,7 +52,7 @@ export default function ProjectModal({ project, clients, open, onClose }) {
     } else {
       setForm({ client_id: "", project_name: "", description: "", scope_description: "", due_date: "", deliverable_url: "", status: "Not Started", feedback: "", roadmap: [] });
     }
-  }, [project, open]);
+  }, [project]);
 
   const mutation = useMutation({
     mutationFn: (data) =>
