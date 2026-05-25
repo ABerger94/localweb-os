@@ -91,6 +91,11 @@ export default function ClientPortalSupport() {
     <div className="flex min-h-screen bg-background">
       <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
       <div className="flex-1 lg:ml-64">
+        {/* Mobile top bar */}
+        <div className="flex lg:hidden items-center justify-end px-4 pt-4 pb-2">
+          <ClientNotificationPanel />
+        </div>
+
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-between gap-4 mb-6">
             <PageHeader
@@ -101,7 +106,9 @@ export default function ClientPortalSupport() {
               actionIcon={Plus}
               className="flex-1"
             />
-            <ClientNotificationPanel />
+            <div className="hidden lg:block">
+              <ClientNotificationPanel />
+            </div>
           </div>
 
           {/* New Ticket Form */}
