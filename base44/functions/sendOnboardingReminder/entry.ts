@@ -51,7 +51,7 @@ Best regards,
 Alek
 Local Web Connect`;
 
-    await base44.integrations.Core.SendEmail({
+    await base44.asServiceRole.integrations.Core.SendEmail({
       to: client.contact_email,
       subject,
       body,

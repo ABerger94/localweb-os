@@ -42,10 +42,11 @@ Alek`;
     }
 
     // Send email using Base44 integration
-    await base44.integrations.Core.SendEmail({
+    await base44.asServiceRole.integrations.Core.SendEmail({
       to,
       subject,
       body,
+      from_name: 'Local Web Connect',
     });
 
     // Update checklist to mark email as sent
