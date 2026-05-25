@@ -18,35 +18,49 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function ClientPortalProjects() {
   const [currentClient, setCurrentClient] = useState(null);
   const [expandedProject, setExpandedProject] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then((u) => setUserEmail(u?.email?.toLowerCase() || null));
+  }, []);
 
   const { data: clients = [] } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => base44.entities.Client.list(),
+    queryKey: ["clients", userEmail],
+    queryFn: () => base44.entities.Client.filter({ user_email: userEmail }),
+    enabled: !!userEmail,
   });
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => base44.entities.Project.list(),
+  const { data: projects = [], isLoading: projectsLoading } = useQuery({
+    queryKey: ["projects", currentClient?.id],
+    queryFn: () => base44.entities.Project.filter({ client_id: currentClient.id }),
+    enabled: !!currentClient?.id,
   });
 
   const { data: assets = [] } = useQuery({
-    queryKey: ["design-assets"],
-    queryFn: () => base44.entities.DesignAsset.list(),
+    queryKey: ["design-assets", currentClient?.id],
+    queryFn: () => base44.entities.DesignAsset.filter({ client_id: currentClient.id }),
+    enabled: !!currentClient?.id,
   });
 
   useEffect(() => {
-    async function loadUser() {
-      const user = await base44.auth.me();
-      const client = clients.find((c) => c.user_email?.toLowerCase() === user.email?.toLowerCase());
-      setCurrentClient(client || null);
+    if (clients.length > 0) {
+      setCurrentClient(clients[0]);
     }
-    if (clients.length > 0) loadUser();
   }, [clients]);
 
-  if (!currentClient) return null;
+  if (!userEmail || (userEmail && clients.length === 0 && !currentClient)) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
+        <div className="flex-1 lg:ml-64 flex items-center justify-center">
+          <p className="text-muted-foreground text-sm">Loading your projects...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const clientProjects = projects.filter((p) => p.client_id === currentClient.id);
-  const clientAssets = assets.filter((a) => a.client_id === currentClient.id);
+  const clientProjects = projects;
+  const clientAssets = assets;
 
   return (
     <div className="flex min-h-screen bg-background">
