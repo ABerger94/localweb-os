@@ -143,8 +143,8 @@ export default function ClientPortalLanding() {
             Built for Local Businesses
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-            Your Business Deserves to Be{" "}
-            <span className="text-primary">Found Online</span>
+            Your Business Deserves{" "}
+            <span className="text-primary">Custom Solutions</span>
           </h1>
           <p className="text-lg sm:text-xl text-white/80 mb-10 max-w-2xl mx-auto">
             Every day without a web presence is revenue walking out the door. Local Web
