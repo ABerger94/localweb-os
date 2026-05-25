@@ -14,21 +14,23 @@ import { cn } from "@/lib/utils";
 // Unified Email Composer Component
 export function EmailComposer({ client, checklistId, onSent, onCancel, inline = true }) {
   const queryClient = useQueryClient();
-  const [subject, setSubject] = useState("Welcome to Our Agency!");
+  const [subject, setSubject] = useState("Welcome to Local Web Connect!");
   const [body, setBody] = useState(`Hi ${client?.contact_name || ''},
 
-Welcome aboard! We're excited to work with you.
+Welcome aboard! I'm excited to work with you.
 
-You now have access to your client portal where you can:
-- View your projects and progress
-- Track invoices and payments
-- Submit support tickets
+You now have access to the client portal where you can:
+- View the projects I am working on for you and their progress
+- Track invoices and further monthly payments
+- Submit support tickets for your apps/sites
 - Complete your onboarding questionnaire
 
-If you have any questions, don't hesitate to reach out.
+If you have any questions, ideas, etc. - don't hesitate to reach out.
+
+You can login to your client portal/account by signing up with your email at https://local-web-connect.base44.app/client-portal. Once signed up, you can login and access the portal.
 
 Best regards,
-Your Agency Team`);
+Alek`);
   const [isSending, setIsSending] = useState(false);
 
   const sendMutation = useMutation({
