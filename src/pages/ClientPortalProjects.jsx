@@ -18,19 +18,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function ClientPortalProjects() {
   const [currentClient, setCurrentClient] = useState(null);
   const [expandedProject, setExpandedProject] = useState(null);
-  const [userEmail, setUserEmail] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then((u) => setUserEmail(u?.email?.toLowerCase() || null));
+    base44.auth.me().then((u) => setCurrentUser(u));
   }, []);
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["clients", userEmail],
-    queryFn: () => base44.entities.Client.filter({ user_email: userEmail }),
-    enabled: !!userEmail,
+  // Try by client_id on user first, fall back to email match
+  const clientId = currentUser?.client_id || null;
+  const userEmail = currentUser?.email?.toLowerCase() || null;
+
+  const { data: clientsById = [] } = useQuery({
+    queryKey: ["clients-by-id", clientId],
+    queryFn: () => base44.entities.Client.filter({ id: clientId }),
+    enabled: !!clientId,
   });
 
-  const { data: projects = [], isLoading: projectsLoading } = useQuery({
+  const { data: clientsByEmail = [] } = useQuery({
+    queryKey: ["clients-by-email", userEmail],
+    queryFn: () => base44.entities.Client.filter({ user_email: userEmail }),
+    enabled: !clientId && !!userEmail,
+  });
+
+  useEffect(() => {
+    const found = clientsById[0] || clientsByEmail[0] || null;
+    if (found) setCurrentClient(found);
+  }, [clientsById, clientsByEmail]);
+
+  const { data: projects = [] } = useQuery({
     queryKey: ["projects", currentClient?.id],
     queryFn: () => base44.entities.Project.filter({ client_id: currentClient.id }),
     enabled: !!currentClient?.id,
@@ -42,13 +57,7 @@ export default function ClientPortalProjects() {
     enabled: !!currentClient?.id,
   });
 
-  useEffect(() => {
-    if (clients.length > 0) {
-      setCurrentClient(clients[0]);
-    }
-  }, [clients]);
-
-  if (!userEmail || (userEmail && clients.length === 0 && !currentClient)) {
+  if (!currentUser) {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
