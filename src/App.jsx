@@ -32,6 +32,9 @@ const AuthenticatedApp = () => {
 
   // Always render the public landing page without any auth check
   if (window.location.pathname === '/client-portal') {
+    if (user && user.role === 'admin') {
+      return <Navigate to="/" replace />;
+    }
     if (user) {
       return <Navigate to="/client-portal/dashboard" replace />;
     }
