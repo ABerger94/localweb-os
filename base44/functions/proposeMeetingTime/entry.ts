@@ -15,15 +15,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Get checklist and client
-    const checklists = await base44.entities.OnboardingChecklist.filter({ id: checklistId });
+    // Use service role to read and update checklist (bypasses RLS for client users)
+    const checklists = await base44.asServiceRole.entities.OnboardingChecklist.filter({ id: checklistId });
     const checklist = checklists[0];
     
     if (!checklist) {
       return Response.json({ error: 'Checklist not found' }, { status: 404 });
     }
     
-    const clients = await base44.entities.Client.filter({ id: checklist.client_id });
+    const clients = await base44.asServiceRole.entities.Client.filter({ id: checklist.client_id });
     const client = clients[0];
 
     // Create proposal history entry
@@ -47,14 +47,14 @@ Deno.serve(async (req) => {
     }
     history.push(newProposal);
 
-    // Update checklist with new proposal
+    // Update checklist with new proposal using service role
     const updateData = {
       [meetingType === 'welcome' ? 'welcome_call_date' : 'strategy_meeting_date']: datetime,
       [meetingType === 'welcome' ? 'welcome_call_proposed_by' : 'strategy_meeting_proposed_by']: proposedBy,
       [meetingType === 'welcome' ? 'welcome_call_confirmed' : 'strategy_meeting_confirmed']: false,
       [historyField]: JSON.stringify(history),
     };
-    await base44.entities.OnboardingChecklist.update(checklistId, updateData);
+    await base44.asServiceRole.entities.OnboardingChecklist.update(checklistId, updateData);
 
     // Send email notification
     const meetingLabel = meetingType === 'welcome' ? 'Welcome Call' : 'Strategy Meeting';
@@ -70,24 +70,23 @@ Deno.serve(async (req) => {
         console.error('Failed to send email to client:', emailError.message);
       }
     } else {
-      // Client proposed - notify agency admin (only if we have admin access)
-      if (user?.role === 'admin') {
-        try {
-          const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
-          for (const admin of admins) {
-            try {
-              await base44.integrations.Core.SendEmail({
-                to: admin.email,
-                subject: `${meetingLabel} Request - ${client.business_name}`,
-                body: `Hi ${admin.full_name || 'there'},\n\n${client.contact_name} has requested a ${meetingLabel.toLowerCase()} time:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Client notes: ${notes}\n\n` : ''}Log into the dashboard to confirm or suggest a new time.\n\nBest regards,\nLocal Web Connect`,
-              });
-            } catch (adminEmailError) {
-              console.error(`Failed to send email to admin ${admin.email}:`, adminEmailError.message);
-            }
+      // Client proposed - always notify all admins using service role
+      try {
+        const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+        for (const admin of admins) {
+          try {
+            await base44.integrations.Core.SendEmail({
+              to: admin.email,
+              subject: `${meetingLabel} Request - ${client?.business_name || 'Client'}`,
+              body: `Hi ${admin.full_name || 'there'},\n\n${client?.contact_name || 'A client'} has requested a ${meetingLabel.toLowerCase()} time:\n\n📅 ${new Date(datetime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}\n\n${notes ? `Client notes: ${notes}\n\n` : ''}Log into the dashboard to confirm or suggest a new time.\n\nBest regards,\nLocal Web Connect`,
+            });
+            console.log(`Notified admin: ${admin.email}`);
+          } catch (adminEmailError) {
+            console.error(`Failed to send email to admin ${admin.email}:`, adminEmailError.message);
           }
-        } catch (adminError) {
-          console.error('Failed to notify admins:', adminError.message);
         }
+      } catch (adminError) {
+        console.error('Failed to notify admins:', adminError.message);
       }
     }
 
