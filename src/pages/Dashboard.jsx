@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import DashboardCalendar from "@/components/dashboard/DashboardCalendar";
 import UpcomingEventsList from "@/components/dashboard/UpcomingEventsList";
+import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: null },
@@ -131,11 +132,21 @@ export default function Dashboard() {
       <Sidebar items={navigationItems} />
 
       <div className="flex-1 lg:ml-64">
+        {/* Mobile top bar */}
+        <div className="flex lg:hidden items-center justify-end px-4 pt-4 pb-2">
+          <ClientNotificationPanel />
+        </div>
+
         <div className="p-4 sm:p-6 lg:p-8">
-          <PageHeader title="Dashboard" description="Your agency at a glance" />
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <PageHeader title="Dashboard" description="Your agency at a glance" className="flex-1 mb-0" />
+            <div className="hidden lg:block">
+              <ClientNotificationPanel />
+            </div>
+          </div>
 
           {/* Key Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 mt-0">
             <StatCard title="Monthly Recurring Revenue" value={`$${mrr.toFixed(0)}`} icon={DollarSign} />
             <StatCard title="Total Collected" value={`$${totalCollected.toFixed(0)}`} icon={CheckCircle2} />
             <StatCard title="Pending Amount" value={`$${totalPending.toFixed(0)}`} icon={AlertCircle} />
