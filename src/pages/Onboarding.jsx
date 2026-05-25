@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
@@ -132,10 +133,16 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
                 onClick={async (e) => {
                   e.stopPropagation();
                   setNudgeSending(true);
-                  await onNudge(client.id);
-                  setNudgeSending(false);
-                  setNudgeSent(true);
-                  setTimeout(() => setNudgeSent(false), 4000);
+                  try {
+                    await onNudge(client.id);
+                    toast.success('Reminder sent successfully');
+                    setNudgeSent(true);
+                    setTimeout(() => setNudgeSent(false), 4000);
+                  } catch (error) {
+                    toast.error('Failed to send reminder');
+                  } finally {
+                    setNudgeSending(false);
+                  }
                 }}
               >
                 <Bell className="w-3 h-3" />
