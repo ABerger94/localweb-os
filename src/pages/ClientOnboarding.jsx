@@ -933,8 +933,8 @@ export default function ClientOnboarding() {
 
       {/* Embedded Payment Modal */}
       {payingInvoice && stripePromise && clientSecret && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-card rounded-lg shadow-xl max-w-md w-full p-6 relative my-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => {
                 setPayingInvoice(null);
