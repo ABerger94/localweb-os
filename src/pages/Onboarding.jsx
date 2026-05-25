@@ -108,20 +108,20 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
         className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h3 className="font-semibold text-foreground truncate">{client.business_name}</h3>
               <StatusBadge status={client.pipeline_stage} />
             </div>
             <p className="text-sm text-muted-foreground truncate">{client.contact_name} • {client.contact_email}</p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="text-right">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-foreground">{progress}%</p>
               <p className="text-xs text-muted-foreground">complete</p>
             </div>
-            <div className="w-24">
+            <div className="w-24 hidden sm:block">
               <Progress value={progress} className="h-2" />
             </div>
             {progress < 100 && (
@@ -146,7 +146,7 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
                 }}
               >
                 <Bell className="w-3 h-3" />
-                {nudgeSent ? 'Sent!' : nudgeSending ? 'Sending...' : 'Nudge'}
+                <span className="hidden sm:inline">{nudgeSent ? 'Sent!' : nudgeSending ? 'Sending...' : 'Nudge'}</span>
               </Button>
             )}
             {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
@@ -156,7 +156,7 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
 
       {expanded && (
         <div className="border-t border-border">
-          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {PIPELINE_STAGES.map((stage, idx) => {
               const stageCompleted = stage.items.every((i) => checklist?.[i.key] === true);
               return (
