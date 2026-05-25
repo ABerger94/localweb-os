@@ -46,8 +46,19 @@ export default function ClientEditModal({ client, open, onClose }) {
   }, [client, open]);
 
   const mutation = useMutation({
-    mutationFn: (data) =>
-      isNew ? base44.entities.Client.create(data) : base44.entities.Client.update(client.id, data),
+    mutationFn: async (data) => {
+      const saved = isNew
+        ? await base44.entities.Client.create(data)
+        : await base44.entities.Client.update(client.id, data);
+
+      // Auto-link the portal user when user_email is set
+      if (data.user_email) {
+        const clientId = isNew ? saved.id : client.id;
+        await base44.functions.invoke('linkUserToClient', { client_id: clientId, user_email: data.user_email });
+      }
+
+      return saved;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clients"] });
       onClose();
