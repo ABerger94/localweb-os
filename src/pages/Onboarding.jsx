@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, Users, Zap, CalendarCheck, CalendarX, Mail, Phone } from "lucide-react";
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, Users, Zap, CalendarCheck, CalendarX, Mail, Phone, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmailComposer, CallScheduler } from "@/components/client/ClientActionComponents.jsx";
 
@@ -84,7 +84,7 @@ function getActiveStage(checklist) {
   return 0;
 }
 
-function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, onSuggestMeeting }) {
+function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, onSuggestMeeting, onNudge }) {
   const strategyMeetingDate = checklist?.strategy_meeting_date
     ? new Date(checklist.strategy_meeting_date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
     : null;
@@ -92,6 +92,8 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
     ? new Date(checklist.welcome_call_date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
     : null;
   const [expanded, setExpanded] = useState(false);
+  const [nudgeSending, setNudgeSending] = useState(false);
+  const [nudgeSent, setNudgeSent] = useState(false);
   const [suggestMode, setSuggestMode] = useState(false);
   const [suggestedTime, setSuggestedTime] = useState("");
   const [showEmailComposer, setShowEmailComposer] = useState(false);
@@ -121,6 +123,25 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
             <div className="w-24">
               <Progress value={progress} className="h-2" />
             </div>
+            {progress < 100 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs gap-1 shrink-0"
+                disabled={nudgeSending || nudgeSent}
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  setNudgeSending(true);
+                  await onNudge(client.id);
+                  setNudgeSending(false);
+                  setNudgeSent(true);
+                  setTimeout(() => setNudgeSent(false), 4000);
+                }}
+              >
+                <Bell className="w-3 h-3" />
+                {nudgeSent ? 'Sent!' : nudgeSending ? 'Sending...' : 'Nudge'}
+              </Button>
+            )}
             {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </div>
         </div>
@@ -472,6 +493,10 @@ export default function Onboarding() {
     }
   };
 
+  const handleNudge = async (clientId) => {
+    await base44.functions.invoke('sendOnboardingReminder', { clientId });
+  };
+
   const handleSuggestMeeting = async (clientId, checklist, newTime, meetingType = 'strategy') => {
     try {
       await base44.functions.invoke('proposeMeetingTime', {
@@ -564,6 +589,7 @@ export default function Onboarding() {
                     onToggle={handleToggle}
                     onConfirmMeeting={handleConfirmMeeting}
                     onSuggestMeeting={handleSuggestMeeting}
+                    onNudge={handleNudge}
                   />
                 );
               })
