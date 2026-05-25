@@ -62,6 +62,9 @@ const AuthenticatedApp = () => {
     } else if (authError.type === 'auth_required') {
       navigateToLogin();
       return null;
+    } else {
+      // Unknown errors — don't block the app, just continue rendering
+      console.warn('Auth error (non-blocking):', authError);
     }
   }
 

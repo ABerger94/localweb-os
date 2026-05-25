@@ -10,8 +10,15 @@ Deno.serve(async (req) => {
     }
 
     // Find client associated with this user
-    const clients = await base44.entities.Client.list();
-    const client = clients.find(c => c.user_email?.toLowerCase() === user.email?.toLowerCase());
+    let client = null;
+    if (user.client_id) {
+      const clients = await base44.entities.Client.filter({ id: user.client_id });
+      client = clients[0] || null;
+    }
+    if (!client) {
+      const clients = await base44.entities.Client.filter({ user_email: user.email });
+      client = clients[0] || null;
+    }
 
     if (!client) {
       return Response.json({ notifications: [] });
