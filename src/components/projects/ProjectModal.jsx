@@ -65,7 +65,7 @@ export default function ProjectModal({ project, clients, open, onClose }) {
     mutationFn: (data) =>
       isNew ? base44.entities.Project.create(data) : base44.entities.Project.update(project.id, data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["admin-projects"] });
       onClose();
     },
   });

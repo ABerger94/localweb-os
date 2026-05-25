@@ -35,21 +35,20 @@ export default function Projects() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const { data: projects = [], error: projectsError } = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => base44.entities.Project.list(),
+  const { data: adminData = {} } = useQuery({
+    queryKey: ["admin-projects"],
+    queryFn: async () => {
+      const res = await base44.functions.invoke("getAdminProjects", {});
+      return res.data;
+    },
   });
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => base44.entities.Client.list(),
-  });
-
-  if (projectsError) console.error("Projects fetch error:", projectsError);
+  const projects = adminData.projects || [];
+  const clients = adminData.clients || [];
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Project.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["projects"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-projects"] }),
   });
 
   const clientName = (id) => clients.find((c) => c.id === id)?.business_name || "Unknown";
@@ -80,7 +79,7 @@ export default function Projects() {
       retainerAmount: parseFloat(retainerAmount),
       description,
     });
-    qc.invalidateQueries({ queryKey: ["projects", "retainers", "clients"] });
+    qc.invalidateQueries({ queryKey: ["admin-projects"] });
   };
 
   const statusCounts = STATUS_OPTIONS.slice(1).reduce((acc, s) => {
