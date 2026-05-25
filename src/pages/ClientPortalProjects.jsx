@@ -24,37 +24,34 @@ export default function ClientPortalProjects() {
     base44.auth.me().then((u) => setCurrentUser(u));
   }, []);
 
-  // Try by client_id on user first, fall back to email match
   const clientId = currentUser?.client_id || null;
   const userEmail = currentUser?.email?.toLowerCase() || null;
 
-  const { data: clientsById = [] } = useQuery({
-    queryKey: ["clients-by-id", clientId],
-    queryFn: () => base44.entities.Client.filter({ id: clientId }),
-    enabled: !!clientId,
-  });
-
+  // Fetch client by user_email (RLS allows this)
   const { data: clientsByEmail = [] } = useQuery({
     queryKey: ["clients-by-email", userEmail],
     queryFn: () => base44.entities.Client.filter({ user_email: userEmail }),
-    enabled: !clientId && !!userEmail,
+    enabled: !!userEmail,
   });
 
   useEffect(() => {
-    const found = clientsById[0] || clientsByEmail[0] || null;
+    const found = clientsByEmail[0] || null;
     if (found) setCurrentClient(found);
-  }, [clientsById, clientsByEmail]);
+  }, [clientsByEmail]);
+
+  // Use client_id from user directly to fetch projects (most reliable)
+  const resolvedClientId = currentClient?.id || clientId;
 
   const { data: projects = [] } = useQuery({
-    queryKey: ["projects", currentClient?.id],
-    queryFn: () => base44.entities.Project.filter({ client_id: currentClient.id }),
-    enabled: !!currentClient?.id,
+    queryKey: ["projects", resolvedClientId],
+    queryFn: () => base44.entities.Project.filter({ client_id: resolvedClientId }),
+    enabled: !!resolvedClientId,
   });
 
   const { data: assets = [] } = useQuery({
-    queryKey: ["design-assets", currentClient?.id],
-    queryFn: () => base44.entities.DesignAsset.filter({ client_id: currentClient.id }),
-    enabled: !!currentClient?.id,
+    queryKey: ["design-assets", resolvedClientId],
+    queryFn: () => base44.entities.DesignAsset.filter({ client_id: resolvedClientId }),
+    enabled: !!resolvedClientId,
   });
 
   if (!currentUser) {

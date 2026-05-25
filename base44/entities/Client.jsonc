@@ -90,6 +90,9 @@
         },
         {
           "data.user_email": "{{user.email}}"
+        },
+        {
+          "data.id": "{{user.client_id}}"
         }
       ]
     },
