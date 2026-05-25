@@ -24,28 +24,32 @@ const ASSET_TYPES = [
 
 export default function ClientPortalAssets() {
   const [currentClient, setCurrentClient] = useState(null);
+  const [resolvedClientId, setResolvedClientId] = useState(null);
   const [uploadingFiles, setUploadingFiles] = useState([]);
   const [assetNotes, setAssetNotes] = useState("");
   const [selectedType, setSelectedType] = useState("logo");
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    async function loadUser() {
-      const user = await base44.auth.me();
-      const clients = await base44.entities.Client.list();
-      const client = clients.find((c) => c.user_email?.toLowerCase() === user.email?.toLowerCase());
-      setCurrentClient(client || null);
-    }
-    loadUser();
+    base44.auth.me().then(async (user) => {
+      if (user?.client_id) {
+        setResolvedClientId(user.client_id);
+        const clients = await base44.entities.Client.filter({ id: user.client_id });
+        if (clients[0]) setCurrentClient(clients[0]);
+      } else if (user?.email) {
+        const clients = await base44.entities.Client.filter({ user_email: user.email });
+        if (clients[0]) { setResolvedClientId(clients[0].id); setCurrentClient(clients[0]); }
+      }
+    });
   }, []);
 
   const { data: assets = [], isLoading } = useQuery({
-    queryKey: ["design-assets", currentClient?.id],
-    queryFn: () => base44.entities.DesignAsset.list(),
-    enabled: !!currentClient,
+    queryKey: ["design-assets", resolvedClientId],
+    queryFn: () => base44.entities.DesignAsset.filter({ client_id: resolvedClientId }),
+    enabled: !!resolvedClientId,
   });
 
-  const clientAssets = assets?.filter((a) => a.client_id === currentClient?.id) || [];
+  const clientAssets = assets;
 
   const uploadMutation = useMutation({
     mutationFn: async (file) => {

@@ -33,30 +33,25 @@ export default function ClientPortalSupport() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(console.error);
+    base44.auth.me().then((user) => {
+      setCurrentUser(user);
+      if (user?.client_id) {
+        setCurrentClient({ id: user.client_id });
+      } else if (user?.email) {
+        base44.entities.Client.filter({ user_email: user.email }).then((clients) => {
+          if (clients[0]) setCurrentClient(clients[0]);
+        });
+      }
+    }).catch(console.error);
   }, []);
 
-  const { data: clients = [], isLoading: clientsLoading } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => base44.entities.Client.list(),
-  });
-
-  useEffect(() => {
-    if (currentUser && clients.length > 0) {
-      const client = clients.find(
-        (c) => c.user_email?.toLowerCase() === currentUser.email?.toLowerCase()
-      );
-      setCurrentClient(client || null);
-    }
-  }, [currentUser, clients]);
-
   const { data: tickets = [], isLoading: ticketsLoading } = useQuery({
-    queryKey: ["tickets"],
-    queryFn: () => base44.entities.MaintenanceTicket.list(),
-    enabled: !!currentClient,
+    queryKey: ["tickets", currentClient?.id],
+    queryFn: () => base44.entities.MaintenanceTicket.filter({ client_id: currentClient.id }),
+    enabled: !!currentClient?.id,
   });
 
-  const clientTickets = tickets.filter((t) => t.client_id === currentClient?.id);
+  const clientTickets = tickets;
 
   const createMutation = useMutation({
     mutationFn: (data) =>
@@ -67,7 +62,7 @@ export default function ClientPortalSupport() {
         status: "Open",
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["tickets", currentClient?.id] });
       setShowForm(false);
       setForm({ title: "", description: "", priority: "Medium" });
     },
@@ -79,7 +74,7 @@ export default function ClientPortalSupport() {
     createMutation.mutate(form);
   };
 
-  const isLoading = !currentUser || clientsLoading;
+  const isLoading = !currentUser || !currentClient;
 
   if (isLoading || ticketsLoading) {
     return (

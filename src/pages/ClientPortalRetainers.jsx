@@ -13,29 +13,27 @@ import ClientNotificationPanel from "@/components/client/ClientNotificationPanel
 
 
 export default function ClientPortalRetainers() {
-  const [currentClient, setCurrentClient] = useState(null);
-
-  const { data: clients = [] } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => base44.entities.Client.list(),
-  });
-
-  const { data: retainers = [] } = useQuery({
-    queryKey: ["retainers"],
-    queryFn: () => base44.entities.Retainer.list(),
-    enabled: !!currentClient,
-  });
+  const [resolvedClientId, setResolvedClientId] = useState(null);
 
   useEffect(() => {
-    async function loadUser() {
-      const user = await base44.auth.me();
-      const client = clients.find((c) => c.user_email?.toLowerCase() === user.email?.toLowerCase());
-      setCurrentClient(client || null);
-    }
-    if (clients.length > 0) loadUser();
-  }, [clients]);
+    base44.auth.me().then((user) => {
+      if (user?.client_id) {
+        setResolvedClientId(user.client_id);
+      } else if (user?.email) {
+        base44.entities.Client.filter({ user_email: user.email }).then((clients) => {
+          if (clients[0]) setResolvedClientId(clients[0].id);
+        });
+      }
+    });
+  }, []);
 
-  if (!currentClient) {
+  const { data: retainers = [] } = useQuery({
+    queryKey: ["retainers", resolvedClientId],
+    queryFn: () => base44.entities.Retainer.filter({ client_id: resolvedClientId }),
+    enabled: !!resolvedClientId,
+  });
+
+  if (!resolvedClientId) {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
@@ -46,7 +44,7 @@ export default function ClientPortalRetainers() {
     );
   }
 
-  const clientRetainers = retainers.filter((r) => r.client_id === currentClient.id);
+  const clientRetainers = retainers;
   const activeRetainers = clientRetainers.filter((r) => r.status === "Active");
   const mrr = activeRetainers.reduce((sum, r) => sum + (r.monthly_amount || 0), 0);
 

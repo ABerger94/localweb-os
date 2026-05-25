@@ -18,33 +18,48 @@ import StripePaymentForm from "@/components/invoices/StripePaymentForm";
 
 export default function ClientPortalInvoices() {
   const [currentClient, setCurrentClient] = useState(null);
+  const [resolvedClientId, setResolvedClientId] = useState(null);
   const [payingInvoice, setPayingInvoice] = useState(null);
   const [stripePromise, setStripePromise] = useState(null);
   const [clientSecret, setClientSecret] = useState(null);
   const [loadingPayment, setLoadingPayment] = useState(false);
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => base44.entities.Client.list(),
+  useEffect(() => {
+    base44.auth.me().then((user) => {
+      if (user?.client_id) {
+        setResolvedClientId(user.client_id);
+      } else if (user?.email) {
+        base44.entities.Client.filter({ user_email: user.email }).then((clients) => {
+          if (clients[0]) setResolvedClientId(clients[0].id);
+        });
+      }
+    });
+  }, []);
+
+  const { data: clientData = null } = useQuery({
+    queryKey: ["client", resolvedClientId],
+    queryFn: () => base44.entities.Client.filter({ id: resolvedClientId }).then(r => r[0] || null),
+    enabled: !!resolvedClientId,
   });
+
+  useEffect(() => { if (clientData) setCurrentClient(clientData); }, [clientData]);
 
   const { data: invoices = [] } = useQuery({
-    queryKey: ["invoices"],
-    queryFn: () => base44.entities.Invoice.list(),
+    queryKey: ["invoices", resolvedClientId],
+    queryFn: () => base44.entities.Invoice.filter({ client_id: resolvedClientId }),
+    enabled: !!resolvedClientId,
   });
 
-  useEffect(() => {
-    async function loadUser() {
-      const user = await base44.auth.me();
-      const client = clients.find((c) => c.user_email === user.email);
-      setCurrentClient(client);
-    }
-    if (clients.length > 0) loadUser();
-  }, [clients]);
+  if (!resolvedClientId) return (
+    <div className="flex min-h-screen bg-background">
+      <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
+      <div className="flex-1 lg:ml-64 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    </div>
+  );
 
-  if (!currentClient) return null;
-
-  const clientInvoices = invoices.filter((i) => i.client_id === currentClient.id);
+  const clientInvoices = invoices;
   const totalPaid = clientInvoices
     .filter((i) => i.status === "Paid")
     .reduce((sum, i) => sum + (i.amount || 0), 0);
