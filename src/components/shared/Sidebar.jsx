@@ -70,7 +70,10 @@ export default function Sidebar({ items, isClientPortal = false }) {
         <div className="p-4 border-t border-sidebar-border shrink-0 space-y-2">
           <p className="text-xs text-sidebar-foreground/60">Local Web Connect Pro</p>
           <button
-            onClick={() => base44.auth.logout(window.location.origin + '/client-portal')}
+            onClick={async () => {
+              await base44.auth.logout(window.location.origin + '/client-portal');
+              window.location.href = window.location.origin + '/client-portal';
+            }}
             className="flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors w-full"
           >
             <LogOut className="w-3.5 h-3.5 shrink-0" />
