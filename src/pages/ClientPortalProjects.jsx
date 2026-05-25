@@ -31,17 +31,14 @@ export default function ClientPortalProjects() {
     });
   }, []);
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ["projects", resolvedClientId],
-    queryFn: () => base44.entities.Project.filter({ client_id: resolvedClientId }),
+  const { data: portalData = { projects: [], assets: [] } } = useQuery({
+    queryKey: ["portal-data", resolvedClientId],
+    queryFn: () => base44.functions.invoke("getClientProjects", { client_id: resolvedClientId }).then(r => r.data),
     enabled: !!resolvedClientId,
   });
 
-  const { data: assets = [] } = useQuery({
-    queryKey: ["design-assets", resolvedClientId],
-    queryFn: () => base44.entities.DesignAsset.filter({ client_id: resolvedClientId }),
-    enabled: !!resolvedClientId,
-  });
+  const projects = portalData.projects || [];
+  const assets = portalData.assets || [];
 
   const clientProjects = projects;
   const clientAssets = assets;
