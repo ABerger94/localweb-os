@@ -16,31 +16,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 export default function ClientPortalProjects() {
-  const [currentClient, setCurrentClient] = useState(null);
   const [expandedProject, setExpandedProject] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [resolvedClientId, setResolvedClientId] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then((u) => setCurrentUser(u));
+    base44.auth.me().then((user) => {
+      if (user?.client_id) {
+        setResolvedClientId(user.client_id);
+      } else if (user?.email) {
+        base44.entities.Client.filter({ user_email: user.email }).then((clients) => {
+          if (clients[0]) setResolvedClientId(clients[0].id);
+        });
+      }
+    });
   }, []);
-
-  const clientId = currentUser?.client_id || null;
-  const userEmail = currentUser?.email?.toLowerCase() || null;
-
-  // Fetch client by user_email (RLS allows this)
-  const { data: clientsByEmail = [] } = useQuery({
-    queryKey: ["clients-by-email", userEmail],
-    queryFn: () => base44.entities.Client.filter({ user_email: userEmail }),
-    enabled: !!userEmail,
-  });
-
-  useEffect(() => {
-    const found = clientsByEmail[0] || null;
-    if (found) setCurrentClient(found);
-  }, [clientsByEmail]);
-
-  // Use client_id from user directly to fetch projects (most reliable)
-  const resolvedClientId = currentClient?.id || clientId;
 
   const { data: projects = [] } = useQuery({
     queryKey: ["projects", resolvedClientId],
@@ -53,17 +42,6 @@ export default function ClientPortalProjects() {
     queryFn: () => base44.entities.DesignAsset.filter({ client_id: resolvedClientId }),
     enabled: !!resolvedClientId,
   });
-
-  if (!currentUser) {
-    return (
-      <div className="flex min-h-screen bg-background">
-        <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
-        <div className="flex-1 lg:ml-64 flex items-center justify-center">
-          <p className="text-muted-foreground text-sm">Loading your projects...</p>
-        </div>
-      </div>
-    );
-  }
 
   const clientProjects = projects;
   const clientAssets = assets;
