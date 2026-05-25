@@ -35,7 +35,7 @@ export default function Projects() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [], error: projectsError } = useQuery({
     queryKey: ["projects"],
     queryFn: () => base44.entities.Project.list(),
   });
@@ -44,6 +44,8 @@ export default function Projects() {
     queryKey: ["clients"],
     queryFn: () => base44.entities.Client.list(),
   });
+
+  if (projectsError) console.error("Projects fetch error:", projectsError);
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Project.delete(id),
