@@ -21,57 +21,53 @@ import { CLIENT_PORTAL_NAVIGATION } from "@/lib/clientPortalNavigation";
 
 export default function ClientPortal() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [currentClient, setCurrentClient] = useState(null);
+  const [resolvedClientId, setResolvedClientId] = useState(null);
 
-  const { data: clients = [], isLoading: clientsLoading } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => base44.entities.Client.list(),
+  // Load current user and resolve client_id
+  useEffect(() => {
+    base44.auth.me().then((user) => {
+      setCurrentUser(user);
+      if (user?.client_id) {
+        setResolvedClientId(user.client_id);
+      } else if (user?.email) {
+        base44.entities.Client.filter({ user_email: user.email }).then((clients) => {
+          if (clients[0]) setResolvedClientId(clients[0].id);
+        });
+      }
+    });
+  }, []);
+
+  const { data: currentClient = null } = useQuery({
+    queryKey: ["client", resolvedClientId],
+    queryFn: () => base44.entities.Client.filter({ id: resolvedClientId }).then(r => r[0] || null),
+    enabled: !!resolvedClientId,
   });
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => base44.entities.Project.list(),
+  const { data: portalData = { projects: [], assets: [] } } = useQuery({
+    queryKey: ["portal-data", resolvedClientId],
+    queryFn: () => base44.functions.invoke("getClientProjects", { client_id: resolvedClientId }).then(r => r.data),
+    enabled: !!resolvedClientId,
   });
 
   const { data: invoices = [] } = useQuery({
-    queryKey: ["invoices"],
-    queryFn: () => base44.entities.Invoice.list(),
+    queryKey: ["invoices", resolvedClientId],
+    queryFn: () => base44.entities.Invoice.filter({ client_id: resolvedClientId }),
+    enabled: !!resolvedClientId,
   });
 
   const { data: retainers = [] } = useQuery({
-    queryKey: ["retainers"],
-    queryFn: () => base44.entities.Retainer.list(),
+    queryKey: ["retainers", resolvedClientId],
+    queryFn: () => base44.entities.Retainer.filter({ client_id: resolvedClientId }),
+    enabled: !!resolvedClientId,
   });
 
   const { data: tickets = [] } = useQuery({
-    queryKey: ["tickets"],
-    queryFn: () => base44.entities.MaintenanceTicket.list(),
+    queryKey: ["tickets", resolvedClientId],
+    queryFn: () => base44.entities.MaintenanceTicket.filter({ client_id: resolvedClientId }),
+    enabled: !!resolvedClientId,
   });
 
-  // Load current user
-  useEffect(() => {
-    async function loadUser() {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error("Error loading user:", error);
-      }
-    }
-    loadUser();
-  }, []);
-
-  // Find client once both user and clients are loaded
-  useEffect(() => {
-    if (currentUser && clients.length > 0) {
-      const client = clients.find(
-        (c) => c.user_email?.toLowerCase() === currentUser.email?.toLowerCase()
-      );
-      setCurrentClient(client || null);
-    }
-  }, [currentUser, clients]);
-
-  const isLoading = !currentUser || clientsLoading;
+  const isLoading = !currentUser || (resolvedClientId && !currentClient);
 
   if (isLoading) {
     return (
@@ -84,22 +80,22 @@ export default function ClientPortal() {
     );
   }
 
-  if (!currentClient) {
+  if (!currentClient && !isLoading) {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar items={CLIENT_PORTAL_NAVIGATION} isClientPortal />
         <ClientProfileSetup
           currentUser={currentUser}
-          onCreated={(client) => setCurrentClient(client)}
+          onCreated={(client) => setResolvedClientId(client.id)}
         />
       </div>
     );
   }
 
-  const clientProjects = projects.filter((p) => p.client_id === currentClient.id);
-  const clientInvoices = invoices.filter((i) => i.client_id === currentClient.id);
-  const clientRetainers = retainers.filter((r) => r.client_id === currentClient.id);
-  const clientTickets = tickets.filter((t) => t.client_id === currentClient.id);
+  const clientProjects = portalData.projects || [];
+  const clientInvoices = invoices;
+  const clientRetainers = retainers;
+  const clientTickets = tickets;
   const pendingInvoices = clientInvoices.filter((i) => i.status === "Pending");
 
   return (
