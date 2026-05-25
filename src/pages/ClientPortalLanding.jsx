@@ -22,48 +22,54 @@ import {
 const missedOpportunities = [
   {
     icon: Search,
-    title: "Invisible on Google",
+    title: "No Online Presence",
     description:
-      "97% of people search online before visiting a local business. Without a website, you simply don't exist to them.",
+      "97% of people search online before choosing a business. Without a website, you simply don't exist to them.",
   },
   {
     icon: PhoneOff,
     title: "Lost After-Hours Leads",
     description:
-      "Your competitors' websites capture leads 24/7. When you're closed, potential customers go elsewhere.",
+      "A website or booking tool works 24/7. When you're closed, potential customers can still reach you.",
   },
   {
     icon: ShoppingCart,
-    title: "No Online Booking or Sales",
+    title: "Manual Processes Eating Time",
     description:
-      "Customers expect to book appointments or browse services online. Friction = lost revenue.",
+      "From intake forms to scheduling to client portals — manual work costs time and money. Custom tools fix this.",
   },
   {
     icon: Star,
     title: "Credibility Gap",
     description:
-      "84% of consumers trust a business with a website more than one without. First impressions matter.",
+      "84% of consumers trust a business with a professional web presence more than one without. First impressions matter.",
   },
   {
     icon: MapPin,
-    title: "Missing from Map Searches",
+    title: "Missing from Local Searches",
     description:
-      '"Near me" searches have grown 500% in recent years. A website supercharges your local presence.',
+      '"Near me" searches have grown 500% in recent years. A fast, SEO-optimized site puts you on the map.',
   },
   {
     icon: Users,
-    title: "Competitors Winning Your Customers",
+    title: "Competitors Moving Faster",
     description:
-      "Your competitors have websites. Every day without one, they\'re capturing customers that should be yours.",
+      "Your competitors are automating and building tools. Every day without a digital edge, they pull further ahead.",
   },
 ];
 
 const howWeHelp = [
   {
     icon: Globe,
-    title: "Custom Website Built for You",
+    title: "Custom Websites",
     description:
-      "We design and build a professional website tailored to your brand, services, and local market — no templates.",
+      "We design and build professional websites tailored to your brand, services, and local market — no templates.",
+  },
+  {
+    icon: Smartphone,
+    title: "Custom Apps & Tools",
+    description:
+      "Need a client portal, booking system, internal dashboard, or automation? We build custom tools that fit your workflow.",
   },
   {
     icon: Search,
@@ -72,22 +78,16 @@ const howWeHelp = [
       "We build your site to rank on Google so local customers searching for your services find you first.",
   },
   {
-    icon: Smartphone,
-    title: "Mobile-First Design",
-    description:
-      "Over 60% of searches happen on mobile. Your site will look flawless on every device.",
-  },
-  {
     icon: BarChart2,
     title: "Ongoing Growth Support",
     description:
-      "We don't just build and disappear. Monthly retainers keep your site fresh, fast, and ranking.",
+      "We don't just build and disappear. Monthly retainers keep your site and tools fresh, fast, and effective.",
   },
   {
     icon: Clock,
     title: "Fast Turnaround",
     description:
-      "From mockup to live site in days, not months. We move at the speed your business needs.",
+      "From mockup to launch in days, not months. We move at the speed your business needs.",
   },
   {
     icon: Shield,
@@ -140,7 +140,7 @@ export default function ClientPortalLanding() {
         />
         <div className="relative max-w-4xl mx-auto text-center">
           <span className="inline-block bg-primary/20 text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full mb-4 border border-primary/30">
-            Built for Local Businesses
+            Websites, Apps & Custom Tools for Local Businesses
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
             Your Business Deserves{" "}
@@ -175,9 +175,9 @@ export default function ClientPortalLanding() {
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
           {[
             { value: "97%", label: "of consumers search online first" },
-            { value: "84%", label: "trust businesses with a website more" },
-            { value: "500%", label: "growth in 'near me' searches" },
-            { value: "24/7", label: "your site works while you sleep" },
+            { value: "84%", label: "trust businesses with a web presence" },
+            { value: "10x", label: "faster with the right custom tools" },
+            { value: "24/7", label: "your site and tools work while you sleep" },
           ].map((stat) => (
             <div key={stat.label}>
               <div className="text-3xl font-bold">{stat.value}</div>
@@ -192,11 +192,10 @@ export default function ClientPortalLanding() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              What's Costing You Without a Website?
+              What's Holding Your Business Back?
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              The longer you wait, the more business you leave on the table for
-              competitors. Here's what's slipping through the cracks.
+              Without the right digital tools and web presence, you're leaving money and time on the table. Here's what's slipping through the cracks.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -226,11 +225,10 @@ export default function ClientPortalLanding() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              How Local Web Connect Bridges the Gap
+              How Local Web Connect Builds Your Edge
             </h2>
             <p className="text-white/70 text-lg max-w-2xl mx-auto">
-              We handle everything — from design to launch to ongoing growth — so
-              you can focus on running your business.
+              From custom websites to powerful business tools — we handle everything so you can focus on running your business.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -263,30 +261,30 @@ export default function ClientPortalLanding() {
               Getting Started Is Simple
             </h2>
             <p className="text-muted-foreground text-lg">
-              From first contact to a live website — here's how it works.
+              From first contact to a live website or custom tool — here's how it works.
             </p>
           </div>
           <div className="space-y-6">
             {[
               {
                 step: "01",
-                title: "We Build a Free Mockup",
-                desc: "We research your business and create a custom website mockup — no commitment required.",
+                title: "We Scope Your Needs",
+                desc: "We learn your business, goals, and challenges — then propose the right solution, whether that's a website, a custom app, or both.",
               },
               {
                 step: "02",
-                title: "We Review It Together",
-                desc: "You give feedback, we refine. We won't launch until you love what you see.",
+                title: "We Build a Free Mockup",
+                desc: "We create a custom mockup or prototype tailored to your brand and workflow — no commitment required.",
               },
               {
                 step: "03",
-                title: "We Go Live",
-                desc: "Your site goes live, optimized for Google and ready to bring in customers.",
+                title: "We Review & Refine",
+                desc: "You give feedback, we refine. We won't launch until you love what you see.",
               },
               {
                 step: "04",
-                title: "We Keep Growing",
-                desc: "Monthly retainer keeps your site updated, secure, and climbing the rankings.",
+                title: "We Launch & Keep Growing",
+                desc: "Your solution goes live and we stay on to keep it updated, optimized, and evolving with your business.",
               },
             ].map((item) => (
               <div key={item.step} className="flex gap-5 items-start">
@@ -308,7 +306,7 @@ export default function ClientPortalLanding() {
         <div className="max-w-2xl mx-auto">
           <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-80" />
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Ready to Get Your Business Online?
+            Ready to Build Something That Works for You?
           </h2>
           <p className="text-white/80 text-lg mb-8">
             Already a client? Log in to your portal to track your project, view
@@ -330,7 +328,7 @@ export default function ClientPortalLanding() {
           <Globe className="w-4 h-4 text-primary" />
           <span className="font-semibold text-white">Local Web Connect</span>
         </div>
-        <p>Helping local businesses grow online.</p>
+        <p>Building websites, apps, and custom tools for local businesses.</p>
       </footer>
     </div>
   );
