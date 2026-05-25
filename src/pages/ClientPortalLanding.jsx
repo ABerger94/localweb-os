@@ -147,9 +147,8 @@ export default function ClientPortalLanding() {
             <span className="text-primary">Found Online</span>
           </h1>
           <p className="text-lg sm:text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-            Every day without a website is revenue walking out the door. Local Web
-            Connect builds fast, beautiful, SEO-ready websites that turn searchers
-            into customers — starting with a <strong className="text-white">free mockup</strong>.
+            Every day without a web presence is revenue walking out the door. Local Web
+            Connect builds fast, beautiful websites and custom apps to solve your business needs — turning prospects into customers and streamlining your operations. Starting with a <strong className="text-white">free mockup</strong>.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
