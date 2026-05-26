@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 export default function AuthBridge() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const origin = params.get('origin') || 'https://localweb-os.vercel.app';
+    const origin = params.get('origin') || 'https://localweb-connect.vercel.app';
     const target = params.get('target') || '/client-portal/dashboard';
     const accessToken = params.get('access_token');
     const isNewUser = params.get('is_new_user');
