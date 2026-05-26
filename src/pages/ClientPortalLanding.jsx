@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { redirectToClientLogin } from "@/lib/auth-redirect";
 import { Button } from "@/components/ui/button";
 import { Navigate } from "react-router-dom";
 import {
@@ -122,7 +123,7 @@ export default function ClientPortalLanding() {
             <Globe className="w-6 h-6 text-primary" />
             <span className="font-bold text-lg text-foreground">Local Web Connect</span>
           </div>
-          <Button onClick={() => base44.auth.redirectToLogin("/client-portal/dashboard")} className="gap-2">
+          <Button onClick={() => redirectToClientLogin("/client-portal/dashboard")} className="gap-2">
             Client Login <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
@@ -154,7 +155,7 @@ export default function ClientPortalLanding() {
             <Button
               size="lg"
               className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 text-base px-8"
-              onClick={() => base44.auth.redirectToLogin("/client-portal/dashboard")}
+              onClick={() => redirectToClientLogin("/client-portal/dashboard")}
             >
               Access Your Portal <ArrowRight className="w-5 h-5" />
             </Button>
@@ -314,7 +315,7 @@ export default function ClientPortalLanding() {
           </p>
           <Button
             size="lg"
-            onClick={() => base44.auth.redirectToLogin("/client-portal/dashboard")}
+            onClick={() => redirectToClientLogin("/client-portal/dashboard")}
             className="bg-white text-primary hover:bg-white/90 font-semibold text-base px-10 gap-2"
           >
             Log In to Your Portal <ArrowRight className="w-5 h-5" />

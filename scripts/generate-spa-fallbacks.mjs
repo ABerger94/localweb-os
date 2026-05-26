@@ -13,6 +13,7 @@ const routes = [
   'onboarding',
   'support',
   'qr-code',
+  'auth-bridge',
   'client-portal',
   'client-portal/dashboard',
   'client-portal/projects',
