@@ -37,3 +37,16 @@ Open [Base44.com](http://Base44.com) and click on Publish.
 Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
 
 Support: [https://app.base44.com/support](https://app.base44.com/support)
+
+**Deploying to Vercel**
+
+- **Build command:** `npm run build` (configured in vercel.json)
+- **Output directory:** `dist` (Vite default)
+- Set the required environment variables in the Vercel dashboard (Project Settings → Environment Variables):
+	- `VITE_BASE44_APP_ID`
+	- `VITE_BASE44_APP_BASE_URL`
+	- Any other `VITE_` vars your app needs
+- Optionally set `NODE` version to 18+ in Vercel or via `engines.node` in `package.json` (already set).
+- For Single-Page App routing the repository includes a rewrite to `index.html` in `vercel.json`.
+
+Deployment tip: After connecting the repo in Vercel, verify the environment variables and trigger a deploy. If your build requires additional secrets for Base44 features, add them to Vercel as well.
