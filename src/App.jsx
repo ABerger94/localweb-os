@@ -24,22 +24,11 @@ import ClientPortalRetainers from '@/pages/ClientPortalRetainers';
 import ClientPortalAssets from '@/pages/ClientPortalAssets';
 import SupportTickets from '@/pages/SupportTickets';
 import QRCodePage from '@/pages/QRCode';
-import AuthBridge from '@/pages/AuthBridge';
 
 
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user } = useAuth();
-
-  // Always render the public landing page without any auth check
-  if (window.location.pathname === '/auth-bridge') {
-    return (
-      <Routes>
-        <Route path="/auth-bridge" element={<AuthBridge />} />
-        <Route path="*" element={<Navigate to="/auth-bridge" replace />} />
-      </Routes>
-    );
-  }
 
   // Always render the public landing page without any auth check
   if (window.location.pathname === '/client-portal') {
@@ -109,7 +98,6 @@ const AuthenticatedApp = () => {
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/support" element={<SupportTickets />} />
       <Route path="/qr-code" element={<QRCodePage />} />
-      <Route path="/auth-bridge" element={<AuthBridge />} />
       
       {/* Client Portal Routes */}
       <Route path="/client-portal" element={<ClientPortalLanding />} />
