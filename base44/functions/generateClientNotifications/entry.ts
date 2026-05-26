@@ -9,14 +9,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Find client associated with this user
+    // Find client associated with this user using service role to bypass RLS
     let client = null;
     if (user.client_id) {
-      const clients = await base44.entities.Client.filter({ id: user.client_id });
+      const clients = await base44.asServiceRole.entities.Client.filter({ id: user.client_id });
       client = clients[0] || null;
     }
     if (!client) {
-      const clients = await base44.entities.Client.filter({ user_email: user.email });
+      const clients = await base44.asServiceRole.entities.Client.filter({ user_email: user.email });
       client = clients[0] || null;
     }
 
@@ -27,12 +27,12 @@ Deno.serve(async (req) => {
     const notifications = [];
     const today = new Date();
 
-    // Fetch related data
-    const invoices = await base44.entities.Invoice.filter({ client_id: client.id });
-    const retainers = await base44.entities.Retainer.filter({ client_id: client.id });
-    const projects = await base44.entities.Project.filter({ client_id: client.id });
-    const tickets = await base44.entities.MaintenanceTicket.filter({ client_id: client.id });
-    const checklists = await base44.entities.OnboardingChecklist.filter({ client_id: client.id });
+    // Fetch related data using service role
+    const invoices = await base44.asServiceRole.entities.Invoice.filter({ client_id: client.id });
+    const retainers = await base44.asServiceRole.entities.Retainer.filter({ client_id: client.id });
+    const projects = await base44.asServiceRole.entities.Project.filter({ client_id: client.id });
+    const tickets = await base44.asServiceRole.entities.MaintenanceTicket.filter({ client_id: client.id });
+    const checklists = await base44.asServiceRole.entities.OnboardingChecklist.filter({ client_id: client.id });
     const checklist = checklists[0];
 
     // Invoice notifications
