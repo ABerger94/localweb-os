@@ -8,8 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Upload, X, Image as ImageIcon, Palette, Type, Link as LinkIcon, Trash2 } from "lucide-react";
+import { Upload, Image as ImageIcon, Palette, Type, Link as LinkIcon, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 import { toast } from "sonner";
@@ -43,7 +42,7 @@ export default function ClientPortalAssets() {
     });
   }, []);
 
-  const { data: assets = [], isLoading } = useQuery({
+  const { data: assets = [] } = useQuery({
     queryKey: ["design-assets", resolvedClientId],
     queryFn: () => base44.entities.DesignAsset.filter({ client_id: resolvedClientId }),
     enabled: !!resolvedClientId,

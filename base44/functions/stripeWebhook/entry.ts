@@ -34,25 +34,35 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Handle payment success
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const invoiceId = session.metadata?.invoiceId;
+    const markInvoicePaid = async (invoiceId, paymentIntentId) => {
+      if (!invoiceId) return;
 
-      if (invoiceId) {
-        try {
-          // Update invoice to Paid
-          await base44.asServiceRole.entities.Invoice.update(invoiceId, {
-            status: 'Paid',
-            paid_date: new Date().toISOString().split('T')[0],
-            stripe_payment_intent_id: session.payment_intent as string,
-          });
+      try {
+        await base44.asServiceRole.entities.Invoice.update(invoiceId, {
+          status: 'Paid',
+          paid_date: new Date().toISOString().split('T')[0],
+          stripe_payment_intent_id: paymentIntentId,
+        });
 
-          console.log(`Invoice ${invoiceId} marked as paid via Stripe webhook`);
-        } catch (err) {
-          console.error(`Failed to update invoice ${invoiceId}:`, err);
-        }
+        console.log(`Invoice ${invoiceId} marked as paid via Stripe webhook`);
+      } catch (err) {
+        console.error(`Failed to update invoice ${invoiceId}:`, err);
       }
+    };
+
+    // Embedded payments create PaymentIntents. Keep checkout handling for compatibility.
+    if (event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object;
+      await markInvoicePaid(
+        paymentIntent.metadata?.invoiceId,
+        paymentIntent.id,
+      );
+    } else if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      await markInvoicePaid(
+        session.metadata?.invoiceId,
+        session.payment_intent as string,
+      );
     }
 
     return Response.json({ received: true, eventId: event.id });

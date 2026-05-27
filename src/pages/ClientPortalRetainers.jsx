@@ -7,7 +7,7 @@ import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
 import StatCard from "@/components/shared/StatCard";
 import { Card } from "@/components/ui/card";
-import { DollarSign, RefreshCw, Bell } from "lucide-react";
+import { DollarSign, RefreshCw } from "lucide-react";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 
 

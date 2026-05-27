@@ -10,12 +10,12 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock, CheckCircle2, Hourglass } from "lucide-react";
 
-export default function InlineCallScheduler({ client, checklistId, onScheduled, onCancel }) {
+export default function InlineCallScheduler({ client: _client, checklistId, onScheduled, onCancel }) {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(null);
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
-  const [checklist, setChecklist] = useState(null);
+  const [, setChecklist] = useState(null);
   const [proposalHistory, setProposalHistory] = useState([]);
 
   useEffect(() => {

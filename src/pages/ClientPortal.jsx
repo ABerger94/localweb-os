@@ -12,7 +12,6 @@ import {
   FileText,
   CheckCircle2,
   AlertCircle,
-  Bell,
 } from "lucide-react";
 import ClientProfileSetup from "@/components/client/ClientProfileSetup";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";

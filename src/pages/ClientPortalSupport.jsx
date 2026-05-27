@@ -4,13 +4,12 @@ import { base44 } from "@/api/base44Client";
 import { CLIENT_PORTAL_NAVIGATION } from "@/lib/clientPortalNavigation";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
-import StatusBadge from "@/components/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, MessageSquare, Bell } from "lucide-react";
+import { Plus, X, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 

@@ -19,7 +19,7 @@ const navigationItems = [
 ];
 
 export default function QRCodePage() {
-  const [qrSize, setQrSize] = useState(300);
+  const [qrSize] = useState(300);
 
   // Get the client portal URL - use the current app's URL
   const getPortalUrl = () => {
@@ -49,7 +49,7 @@ export default function QRCodePage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       toast.success("QR code downloaded");
-    } catch (error) {
+    } catch {
       toast.error("Failed to download QR code");
     }
   };

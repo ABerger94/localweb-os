@@ -8,7 +8,7 @@ import StatCard from "@/components/shared/StatCard";
 import InvoiceModal from "@/components/invoices/InvoiceModal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Check, Pencil, FileText, ExternalLink, Trash2 } from "lucide-react";
+import { Plus, Check, Pencil, FileText, Trash2 } from "lucide-react";
 
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: null },

@@ -6,7 +6,7 @@ import NotificationBell from "./NotificationBell";
 export default function ClientNotificationPanel() {
   const [notifications, setNotifications] = useState([]);
 
-  const { data, refetch } = useQuery({
+  const { data } = useQuery({
     queryKey: ['client-notifications'],
     queryFn: async () => {
       const res = await base44.functions.invoke('generateClientNotifications', {});

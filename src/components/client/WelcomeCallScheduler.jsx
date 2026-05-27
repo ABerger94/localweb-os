@@ -11,12 +11,12 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock, CheckCircle2, Hourglass } from "lucide-react";
 
-export default function WelcomeCallScheduler({ open, onClose, client, checklistId }) {
+export default function WelcomeCallScheduler({ open, onClose, client: _client, checklistId }) {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(null);
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
-  const [checklist, setChecklist] = useState(null);
+  const [, setChecklist] = useState(null);
   const [proposalHistory, setProposalHistory] = useState([]);
 
   // Fetch checklist data

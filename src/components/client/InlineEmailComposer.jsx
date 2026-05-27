@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Send, CheckCircle2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Mail, Send } from "lucide-react";
 
 export default function InlineEmailComposer({ client, checklistId, onSent, onCancel }) {
   const queryClient = useQueryClient();

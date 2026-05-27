@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
@@ -23,6 +23,7 @@ export default function ClientPortalInvoices() {
   const [stripePromise, setStripePromise] = useState(null);
   const [clientSecret, setClientSecret] = useState(null);
   const [loadingPayment, setLoadingPayment] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then((user) => {
@@ -105,18 +106,9 @@ export default function ClientPortalInvoices() {
   };
 
   const handlePaymentSuccess = async () => {
-    // Mark invoice as paid
-    await base44.entities.Invoice.update(payingInvoice.id, {
-      status: "Paid",
-      paid_date: new Date().toISOString().split("T")[0],
-    });
-    
-    // Close payment modal
     setPayingInvoice(null);
     setClientSecret(null);
-    
-    // Refresh data
-    window.location.reload();
+    await queryClient.invalidateQueries({ queryKey: ["invoices", resolvedClientId] });
   };
 
   return (

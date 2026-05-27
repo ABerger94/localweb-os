@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Link } from "react-router-dom";
 import { CLIENT_PORTAL_NAVIGATION } from "@/lib/clientPortalNavigation";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
@@ -9,7 +8,7 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Calendar, CheckCircle2, Circle, Clock, FileText, Image as ImageIcon, Link as LinkIcon, Palette, Type } from "lucide-react";
+import { Calendar, CheckCircle2, Circle, Clock, Image as ImageIcon, Link as LinkIcon, Palette, Type } from "lucide-react";
 import ClientNotificationPanel from "@/components/client/ClientNotificationPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 

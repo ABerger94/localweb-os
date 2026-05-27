@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Navigate } from "react-router-dom";
 import {
   Globe,
-  TrendingUp,
   Users,
   Star,
   Search,

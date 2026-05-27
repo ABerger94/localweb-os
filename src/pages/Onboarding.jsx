@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import Sidebar from "@/components/shared/Sidebar";
 import PageHeader from "@/components/shared/PageHeader";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -100,8 +100,6 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
   const [showEmailComposer, setShowEmailComposer] = useState(false);
   const [showCallScheduler, setShowCallScheduler] = useState(false);
   const progress = getProgress(checklist);
-  const activeStageIdx = getActiveStage(checklist);
-
   return (
     <Card className="overflow-hidden">
       <div
@@ -138,7 +136,7 @@ function ClientOnboardingCard({ client, checklist, onToggle, onConfirmMeeting, o
                     toast.success('Reminder sent successfully');
                     setNudgeSent(true);
                     setTimeout(() => setNudgeSent(false), 4000);
-                  } catch (error) {
+                  } catch {
                     toast.error('Failed to send reminder');
                   } finally {
                     setNudgeSending(false);

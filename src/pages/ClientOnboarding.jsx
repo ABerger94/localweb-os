@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, Lock, Upload, X, CalendarClock, CreditCard, FileSignature, ExternalLink } from "lucide-react";
+import { CheckCircle2, Circle, Lock, Upload, X, CalendarClock, CreditCard, FileSignature } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -341,12 +341,9 @@ export default function ClientOnboarding() {
   };
 
   const handlePaymentSuccess = async () => {
-    await base44.entities.Invoice.update(payingInvoice.id, {
-      status: "Paid",
-      paid_date: new Date().toISOString().split("T")[0],
-    });
     setPayingInvoice(null);
     setClientSecret(null);
+    await queryClient.invalidateQueries({ queryKey: ["invoices"] });
     await mutation.mutateAsync({ key: "initial_invoice_sent", value: true });
   };
 

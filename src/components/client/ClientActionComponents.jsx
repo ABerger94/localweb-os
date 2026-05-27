@@ -117,12 +117,12 @@ Alek`);
 }
 
 // Unified Call Scheduler Component
-export function CallScheduler({ client, checklistId, onScheduled, onCancel, inline = true }) {
+export function CallScheduler({ client: _client, checklistId, onScheduled, onCancel, inline = true }) {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(null);
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
-  const [checklist, setChecklist] = useState(null);
+  const [, setChecklist] = useState(null);
   const [proposalHistory, setProposalHistory] = useState([]);
 
   useEffect(() => {

@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, ExternalLink, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
 
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: null },

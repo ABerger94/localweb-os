@@ -23,14 +23,40 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    const { invoiceId, amount, clientEmail, clientName } = body;
+    const { invoiceId, clientEmail, clientName } = body;
 
-    if (!invoiceId || !amount || !clientEmail) {
-      console.error('Missing required fields:', { invoiceId, amount, clientEmail });
+    if (!invoiceId || !clientEmail) {
+      console.error('Missing required fields:', { invoiceId, clientEmail });
       return Response.json(
-        { error: 'Missing required fields: invoiceId, amount, clientEmail' },
+        { error: 'Missing required fields: invoiceId, clientEmail' },
         { status: 400 }
       );
+    }
+
+    const invoice = await base44.asServiceRole.entities.Invoice.get(invoiceId);
+    if (!invoice) {
+      return Response.json({ error: 'Invoice not found' }, { status: 404 });
+    }
+
+    const userClientId = user.client_id;
+    const invoiceClients = await base44.asServiceRole.entities.Client.filter({ id: invoice.client_id });
+    const invoiceClient = invoiceClients[0];
+    const userCanPayInvoice =
+      user.role === 'admin' ||
+      (userClientId && invoice.client_id === userClientId) ||
+      (invoiceClient?.user_email && invoiceClient.user_email.toLowerCase() === user.email?.toLowerCase());
+
+    if (!userCanPayInvoice) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    if (invoice.status !== 'Pending') {
+      return Response.json({ error: 'Invoice is not payable' }, { status: 400 });
+    }
+
+    const invoiceAmount = Number(invoice.amount);
+    if (!Number.isFinite(invoiceAmount) || invoiceAmount <= 0) {
+      return Response.json({ error: 'Invoice amount is invalid' }, { status: 400 });
     }
 
     const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY');
@@ -47,12 +73,15 @@ Deno.serve(async (req) => {
     const stripe = new Stripe(stripeSecret);
 
     // Create PaymentIntent for embedded payment
-    console.log('Creating PaymentIntent for amount:', amount);
+    console.log('Creating PaymentIntent for invoice:', invoiceId);
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
+      amount: Math.round(invoiceAmount * 100), // Convert to cents
       currency: 'usd',
+      receipt_email: clientEmail,
+      description: `Invoice ${invoice.invoice_number || invoiceId}${clientName ? ` for ${clientName}` : ''}`,
       metadata: {
         invoiceId,
+        clientId: invoice.client_id,
         type: 'invoice_payment',
         base44_app_id: Deno.env.get('BASE44_APP_ID'),
       },
@@ -79,6 +108,6 @@ Deno.serve(async (req) => {
     return Response.json(responseData);
   } catch (error) {
     console.error('Stripe payment error:', error);
-    return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
+    return Response.json({ error: 'Unable to create payment intent' }, { status: 500 });
   }
 });

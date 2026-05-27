@@ -1,0 +1,10 @@
+{
+  "name": "Local Web Connect",
+  "short_name": "Local Web",
+  "description": "Client portal and operations dashboard for Local Web Connect.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111827"
+}
